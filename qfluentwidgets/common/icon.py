@@ -605,7 +605,7 @@ class FluentIcon(FluentIconBase, Enum):
     PIE_SINGLE = "PieSingle"
     QUICK_NOTE = "QuickNote"
     SPEED_HIGH = "SpeedHigh"
-    STOP_WATCH = "StopWatch"
+    STOP_WATCH = "Stopwatch"
     ZIP_FOLDER = "ZipFolder"
     BASKETBALL = "Basketball"
     BRIGHTNESS = "Brightness"

@@ -11,4 +11,4 @@ class FluentTranslator(QTranslator):
 
     def load(self, locale: QLocale):
         """ load translation file """
-        super().load(f":/qm/qfluentwidgets.{locale.name()}.qm")
+        return super().load(f":/qm/i18n/qfluentwidgets.{locale.name()}.qm")

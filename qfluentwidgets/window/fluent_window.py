@@ -255,11 +255,11 @@ class FluentTitleBar(TitleBar):
 class FluentWindow(FluentWindowBase):
     """ Fluent window """
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, showReturnButton=True):
         super().__init__(parent)
         self.setTitleBar(FluentTitleBar(self))
 
-        self.navigationInterface = NavigationInterface(self, showReturnButton=True)
+        self.navigationInterface = NavigationInterface(self, showReturnButton=showReturnButton)
         self.widgetLayout = QHBoxLayout()
 
         # initialize layout

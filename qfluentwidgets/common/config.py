@@ -408,10 +408,10 @@ class QConfig(QObject):
 QT_VERSION = tuple([int(v) for v in qVersion().split('.')])
 
 qconfig = QConfig()
-try:
-    print(ALERT)
-except UnicodeEncodeError:
-    print(ALERT.replace("📢", ""))
+# try:
+#     print(ALERT)
+# except UnicodeEncodeError:
+#     print(ALERT.replace("📢", ""))
 
 
 def isDarkTheme():

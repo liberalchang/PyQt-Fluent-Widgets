@@ -62,11 +62,11 @@ class NavigationPanel(QFrame):
 
     displayModeChanged = Signal(NavigationDisplayMode)
 
-    def __init__(self, parent=None, isMinimalEnabled=False):
+    def __init__(self, parent=None, isMinimalEnabled=False, showReturnButton=False):
         super().__init__(parent=parent)
         self._parent = parent   # type: QWidget
         self._isMenuButtonVisible = True
-        self._isReturnButtonVisible = False
+        self._isReturnButtonVisible = showReturnButton
         self._isCollapsible = True
         self._isAcrylicEnabled = False
 
@@ -109,7 +109,7 @@ class NavigationPanel(QFrame):
         self.setAttribute(Qt.WA_StyledBackground)
         self.window().installEventFilter(self)
 
-        self.returnButton.hide()
+        self.returnButton.setVisible(self._isReturnButtonVisible)
         self.returnButton.setDisabled(True)
 
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)

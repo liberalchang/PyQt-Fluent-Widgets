@@ -33,9 +33,8 @@ class NavigationInterface(QWidget):
             Is the navigation interface collapsible
         """
         super().__init__(parent=parent)
-        self.panel = NavigationPanel(self)
+        self.panel = NavigationPanel(self, showReturnButton=showReturnButton)
         self.panel.setMenuButtonVisible(showMenuButton and collapsible)
-        self.panel.setReturnButtonVisible(showReturnButton)
         self.panel.setCollapsible(collapsible)
         self.panel.installEventFilter(self)
         self.panel.displayModeChanged.connect(self.displayModeChanged)
