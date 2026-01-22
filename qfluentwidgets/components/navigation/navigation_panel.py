@@ -120,6 +120,7 @@ class NavigationPanel(QFrame):
 
         self.expandAni.setEasingCurve(QEasingCurve.OutQuad)
         self.expandAni.setDuration(150)
+        self.expandAni.valueChanged.connect(self._onExpandValueChanged)
 
         self.menuButton.clicked.connect(self.toggle)
         self.expandAni.finished.connect(self._onExpandAniFinished)
@@ -752,6 +753,12 @@ class NavigationPanel(QFrame):
                 self.move(0, 0)
                 self.show()
 
+    def _onExpandValueChanged(self):
+        """ update window when animation runs to prevent ghosting in acrylic mode """
+        window = self.window()
+        if hasattr(window, 'isAcrylicEffectEnabled') and window.isAcrylicEffectEnabled():
+            window.update()
+
     def _setWidgetCompacted(self, isCompacted: bool):
         """ set whether the navigation widget is compacted """
         for item in self.findChildren(NavigationWidget):
@@ -766,6 +773,11 @@ class NavigationPanel(QFrame):
         return 36 + th + bh + sh + spacing
 
     def _canDrawAcrylic(self):
+        # disable acrylic if window is already acrylic
+        window = self.window()
+        if hasattr(window, 'isAcrylicEffectEnabled') and window.isAcrylicEffectEnabled():
+            return False
+
         return self.acrylicBrush.isAvailable() and self.isAcrylicEnabled()
 
     def paintEvent(self, e):

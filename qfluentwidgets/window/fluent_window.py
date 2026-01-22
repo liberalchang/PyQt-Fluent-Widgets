@@ -4,9 +4,9 @@ import sys
 
 from PySide6.QtCore import Qt, QSize, QRect, QRectF
 from PySide6.QtGui import QIcon, QPainter, QColor
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QApplication
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QApplication, QGraphicsOpacityEffect
 
-from ..common.config import qconfig
+from ..common.config import qconfig, WindowEffect
 from ..common.icon import FluentIconBase, toQIcon, drawIcon
 from ..common.router import qrouter
 from ..common.style_sheet import FluentStyleSheet, isDarkTheme, setTheme, Theme
@@ -25,12 +25,14 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
 
     def __init__(self, parent=None):
         self._isMicaEnabled = False
+        self._isAcrylicEnabled = False
+        self._acrylicOpacity = 0.5
         self._lightBackgroundColor = QColor(240, 244, 249)
         self._darkBackgroundColor = QColor(32, 32, 32)
         super().__init__(parent=parent)
 
-        # enable mica effect on win11
-        self.setMicaEffectEnabled(True)
+        # enable window effect based on config
+        self.setWindowEffect(qconfig.get(qconfig.windowEffect))
 
         # show system title bar buttons on macOS
         if sys.platform == "darwin":
@@ -51,7 +53,17 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
         """
         self._lightBackgroundColor = QColor(light)
         self._darkBackgroundColor = QColor(dark)
-        self._updateBackgroundColor()
+        self.setBackgroundColor(self._normalBackgroundColor())
+
+    def setWindowEffect(self, effect: WindowEffect):
+        """ set window effect """
+        if effect == WindowEffect.MICA:
+            self.setMicaEffectEnabled(True)
+        elif effect == WindowEffect.ACRYLIC:
+            self.setAcrylicEffectEnabled(True)
+        else:
+            self.setMicaEffectEnabled(False)
+            self.setAcrylicEffectEnabled(False)
 
     def _normalBackgroundColor(self):
         if not self.isMicaEffectEnabled():
@@ -62,19 +74,33 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
     def _onThemeChangedFinished(self):
         if self.isMicaEffectEnabled():
             self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
+        elif self.isAcrylicEffectEnabled():
+            self.setAcrylicEffectEnabled(True)
 
     def paintEvent(self, e):
         super().paintEvent(e)
-        painter = QPainter(self)
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(self.backgroundColor)
-        painter.drawRect(self.rect())
+        
+        if self.isAcrylicEffectEnabled() or self.isMicaEffectEnabled():
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(Qt.transparent)
+            painter.setCompositionMode(QPainter.CompositionMode_Clear)
+            painter.fillRect(self.rect(), Qt.transparent)
+            painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+        else:
+            painter = QPainter(self)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(self.backgroundColor)
+            painter.drawRect(self.rect())
 
     def showEvent(self, e):
         super().showEvent(e)
-        # reapply mica effect after window is fully initialized
+        # reapply mica/acrylic effect after window is fully initialized
         if self.isMicaEffectEnabled():
             self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
+        elif self.isAcrylicEffectEnabled():
+            self.setAcrylicEffectEnabled(True)
 
     def setMicaEffectEnabled(self, isEnabled: bool):
         """ set whether the mica effect is enabled, only available on Win11 """
@@ -84,14 +110,99 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
         self._isMicaEnabled = isEnabled
 
         if isEnabled:
+            self._isAcrylicEnabled = False
+            self.windowEffect.removeBackgroundEffect(self.winId())
             self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
+            self.setAttribute(Qt.WA_TranslucentBackground)
         else:
             self.windowEffect.removeBackgroundEffect(self.winId())
 
         self.setBackgroundColor(self._normalBackgroundColor())
 
+    def setAcrylicEffectEnabled(self, isEnabled: bool):
+        """ set whether the acrylic effect is enabled, only available on Win11 """
+        if sys.platform != 'win32' or sys.getwindowsversion().build < 22000:
+            return
+
+        self._isAcrylicEnabled = isEnabled
+
+        if isEnabled:
+            self._isMicaEnabled = False
+            self.windowEffect.removeBackgroundEffect(self.winId())
+            self.setAttribute(Qt.WA_TranslucentBackground)
+            
+            opacity_hex = hex(int(self._acrylicOpacity * 255))[2:].upper().zfill(2)
+            color = f"101010{opacity_hex}" if isDarkTheme() else f"F2F2F2{opacity_hex}"
+            self.windowEffect.setAcrylicEffect(self.winId(), gradientColor=color)
+            
+            self.setBackgroundColor(Qt.transparent)
+        else:
+            self.windowEffect.removeBackgroundEffect(self.winId())
+            self.setAttribute(Qt.WA_TranslucentBackground, False)
+            self.setBackgroundColor(self._normalBackgroundColor())
+
+    def setAcrylicOpacity(self, opacity: float):
+        """ set the opacity of acrylic effect
+        
+        Parameters
+        ----------
+        opacity: float
+            opacity value, range from 0 to 1
+        """
+        if not 0 <= opacity <= 1:
+            return
+            
+        self._acrylicOpacity = opacity
+        if self.isAcrylicEffectEnabled():
+            self.setAcrylicEffectEnabled(True)
+
     def isMicaEffectEnabled(self):
         return self._isMicaEnabled
+
+    def isAcrylicEffectEnabled(self):
+        return self._isAcrylicEnabled
+
+    def setWindowTitleBarColor(self, color: Union[QColor, str]):
+        """ set title label background color """
+        c = QColor(color)
+        self.titleBar.titleLabel.setStyleSheet(f"background-color: {c.name(QColor.HexArgb)}; padding: 0 4px; border-radius: 4px;")
+
+    # def setTitleBarBackgroundColor(self, color: Union[QColor, str]):
+    #     """ set title bar background color """
+    #     c = QColor(color)
+    #     self.titleBar.setStyleSheet(f"background-color: {c.name(QColor.HexArgb)}")
+
+    def setWindowTitleColor(self, color: Union[QColor, str]):
+        """ set title text color """
+        c = QColor(color)
+        self.titleBar.titleLabel.setStyleSheet(f"color: {c.name(QColor.HexArgb)}")
+
+    def setWindowBorderColor(self, color: Union[QColor, str]):
+        """ set window border color """
+        if sys.platform != 'win32' or sys.getwindowsversion().build < 22000:
+            return
+
+        from ctypes import c_int, byref, sizeof
+        import ctypes
+
+        c = QColor(color)
+        # DWM expects 0x00BBGGRR
+        color_value = (c.blue() << 16) | (c.green() << 8) | c.red()
+
+        DWMWA_BORDER_COLOR = 34
+        dwAttribute = DWMWA_BORDER_COLOR
+        pvAttribute = c_int(color_value)
+        cbAttribute = sizeof(pvAttribute)
+
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(
+            int(self.winId()), dwAttribute, byref(pvAttribute), cbAttribute
+        )
+
+    def setWidgetOpacity(self, widget: QWidget, opacity: float):
+        """ set opacity of any widget """
+        effect = QGraphicsOpacityEffect(widget)
+        effect.setOpacity(opacity)
+        widget.setGraphicsEffect(effect)
 
     def systemTitleBarRect(self, size: QSize) -> QRect:
         """ Returns the system title bar rect, only works for macOS

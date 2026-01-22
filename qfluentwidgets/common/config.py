@@ -24,6 +24,13 @@ class Theme(Enum):
     AUTO = "Auto"
 
 
+class WindowEffect(Enum):
+    """ Window effect enumeration """
+    MICA = "Mica"
+    ACRYLIC = "Acrylic"
+    DISABLE = "Disable"
+
+
 class ConfigValidator:
     """ Config validator """
 
@@ -270,6 +277,8 @@ class QConfig(QObject):
         "QFluentWidgets", "ThemeMode", Theme.LIGHT, OptionsValidator(Theme), EnumSerializer(Theme))
     themeColor = ColorConfigItem("QFluentWidgets", "ThemeColor", '#009faa')
     fontFamilies = ConfigItem("QFluentWidgets", "FontFamilies", ['Segoe UI', 'Microsoft YaHei', 'PingFang SC'])
+    windowEffect = OptionsConfigItem(
+        "QFluentWidgets", "WindowEffect", WindowEffect.MICA, OptionsValidator(WindowEffect), EnumSerializer(WindowEffect), restart=True)
 
     def __init__(self):
         super().__init__()
