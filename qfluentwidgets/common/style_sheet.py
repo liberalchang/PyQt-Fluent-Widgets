@@ -134,6 +134,7 @@ class FluentStyleSheet(StyleSheetBase, Enum):
     COMBO_BOX = "combo_box"
     FLIP_VIEW = "flip_view"
     LINE_EDIT = "line_edit"
+    LABEL_LINE_EDIT = "label_line_edit"
     LIST_VIEW = "list_view"
     TREE_VIEW = "tree_view"
     INFO_BADGE = "info_badge"

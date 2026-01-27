@@ -12,6 +12,7 @@ from .model_combo_box import ModelComboBox, EditableModelComboBox
 from .command_bar import CommandBar, CommandButton, CommandBarView
 from .flip_view import FlipView, HorizontalFlipView, VerticalFlipView, FlipImageDelegate
 from .line_edit import LineEdit, TextEdit, PlainTextEdit, LineEditButton, SearchLineEdit, PasswordLineEdit, TextBrowser
+from .label_line_edit import LabelLineEdit
 from .icon_widget import IconWidget
 from .label import (PixmapLabel, CaptionLabel, StrongBodyLabel, BodyLabel, SubtitleLabel, TitleLabel,
                     LargeTitleLabel, DisplayLabel, FluentLabelBase, ImageLabel, AvatarWidget, HyperlinkLabel)

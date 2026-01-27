@@ -2,7 +2,7 @@
 from typing import Union
 import sys
 
-from PySide6.QtCore import Qt, QSize, QRect, QRectF
+from PySide6.QtCore import Qt, QSize, QRect, QRectF, QTimer
 from PySide6.QtGui import QIcon, QPainter, QColor
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QApplication, QGraphicsOpacityEffect
 
@@ -14,7 +14,7 @@ from ..common.animation import BackgroundAnimationWidget
 from ..components.widgets.frameless_window import FramelessWindow
 from ..components.widgets.label import CaptionLabel
 from ..components.navigation import (NavigationInterface, NavigationBar, NavigationItemPosition,
-                                     NavigationBarPushButton, NavigationTreeWidget)
+                                     NavigationBarPushButton, NavigationTreeWidget, NavigationDisplayMode)
 from .stacked_widget import StackedWidget
 
 from qframelesswindow import TitleBar, TitleBarBase, TitleBarButton
@@ -453,8 +453,23 @@ class FluentWindow(FluentWindowBase):
             interface.deleteLater()
 
     def resizeEvent(self, e):
-        self.titleBar.move(46, 0)
-        self.titleBar.resize(self.width()-46, self.titleBar.height())
+        # 确保初始化已完成，避免在初始化完成前触发展开导致标题栏布局错乱问题
+        if not hasattr(self, 'navigationItems'):
+            super().resizeEvent(e)
+            return
+            
+        # 如果启用了自动伸缩，则由NavigationPanel内部处理，这里不再重复处理
+        if self.navigationInterface.isAutoResizeEnabled():
+            super().resizeEvent(e)
+            return
+            
+        # 实现滞后逻辑：
+        # 当窗口宽度 >= 1200 且未展开时，强制展开
+        # 注意：NavigationPanel 内置逻辑会在 width < minimumExpandWidth (800) 时自动折叠
+        if self.width() >= 1200 and self.navigationInterface.panel.displayMode != NavigationDisplayMode.EXPAND:
+            self.navigationInterface.expand()
+            
+        super().resizeEvent(e)
 
 
 class MSFluentTitleBar(FluentTitleBar):

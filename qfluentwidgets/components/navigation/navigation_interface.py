@@ -363,6 +363,31 @@ class NavigationInterface(QWidget):
         """ set whether to update indicator position when collapese finished """
         self.panel.setUpdateIndicatorPosOnCollapseFinished(update)
 
+    def setAutoResizeEnabled(self, enabled: bool):
+        """ set whether the auto resize is enabled """
+        self.panel.setAutoResizeEnabled(enabled)
+
+    def setAutoResizeRange(self, collapse_width: int, expand_width: int):
+        """ set the auto resize range
+        
+        Parameters
+        ----------
+        collapse_width: int
+            window width threshold to collapse navigation panel
+        
+        expand_width: int
+            window width threshold to expand navigation panel
+        """
+        self.panel.setAutoResizeRange(collapse_width, expand_width)
+
+    def isAutoResizeEnabled(self) -> bool:
+        """ whether the auto resize is enabled """
+        return self.panel.isAutoResizeEnabled()
+
+    def getAutoResizeRange(self) -> tuple:
+        """ get the auto resize range (collapse_width, expand_width) """
+        return self.panel.getAutoResizeRange()
+
     def widget(self, routeKey: str):
         return self.panel.widget(routeKey)
 

@@ -69,6 +69,11 @@ class NavigationPanel(QFrame):
         self._isReturnButtonVisible = showReturnButton
         self._isCollapsible = True
         self._isAcrylicEnabled = False
+        
+        # 自动伸缩相关属性
+        self._isAutoResizeEnabled = False
+        self._autoResizeCollapseWidth = 800
+        self._autoResizeExpandWidth = 1200
 
         self._isIndicatorAnimationEnabled = True
         self._isUpdateIndicatorPosOnCollapseFinished = False
@@ -185,6 +190,55 @@ class NavigationPanel(QFrame):
 
     def setUpdateIndicatorPosOnCollapseFinished(self, update: bool):
         self._isUpdateIndicatorPosOnCollapseFinished = update
+
+    def setAutoResizeEnabled(self, enabled: bool):
+        """ 设置是否启用自动伸缩功能 """
+        self._isAutoResizeEnabled = enabled
+
+    def setAutoResizeRange(self, collapse_width: int, expand_width: int):
+        """ 设置自动伸缩范围
+        
+        Parameters
+        ----------
+        collapse_width: int
+            折叠导航栏的窗口宽度阈值
+        
+        expand_width: int
+            展开导航栏的窗口宽度阈值
+        """
+        if collapse_width >= expand_width:
+            raise ValueError("折叠宽度必须小于展开宽度")
+        
+        self._autoResizeCollapseWidth = collapse_width
+        self._autoResizeExpandWidth = expand_width
+
+    def isAutoResizeEnabled(self) -> bool:
+        """ 是否启用自动伸缩 """
+        return self._isAutoResizeEnabled
+
+    def getAutoResizeRange(self) -> tuple:
+        """ 获取自动伸缩范围 (collapse_width, expand_width) """
+        return (self._autoResizeCollapseWidth, self._autoResizeExpandWidth)
+
+    def _checkAutoResize(self, window_width: int):
+        """ 检查是否需要自动伸缩 """
+        if not self._isAutoResizeEnabled:
+            return
+            
+        # 宽进严出策略：
+        # - 折叠：窗口宽度 < 折叠阈值时自动折叠
+        # - 展开：窗口宽度 >= 展开阈值时强制展开
+        # - 中间态：保持当前状态
+        
+        if window_width < self._autoResizeCollapseWidth:
+            # 需要折叠
+            if self.displayMode in [NavigationDisplayMode.EXPAND, NavigationDisplayMode.MENU]:
+                self.collapse()
+        elif window_width >= self._autoResizeExpandWidth:
+            # 需要展开
+            if self.displayMode in [NavigationDisplayMode.COMPACT, NavigationDisplayMode.MINIMAL]:
+                self.expand()
+        # 中间态保持当前状态，不做任何操作
 
     def widget(self, routeKey: str):
         if routeKey not in self.items:
@@ -710,7 +764,7 @@ class NavigationPanel(QFrame):
         return self.displayMode == NavigationDisplayMode.COMPACT
 
     def eventFilter(self, obj, e: QEvent):
-        if obj is not self.window() or not self._isCollapsible:
+        if obj is not self.window():
             return super().eventFilter(obj, e)
 
         if e.type() == QEvent.MouseButtonRelease:
@@ -718,11 +772,17 @@ class NavigationPanel(QFrame):
                 self.collapse()
         elif e.type() == QEvent.Resize:
             w = QResizeEvent(e).size().width()
-            if w < self.minimumExpandWidth and self.displayMode == NavigationDisplayMode.EXPAND:
-                self.collapse()
-            elif w >= self.minimumExpandWidth and self.displayMode == NavigationDisplayMode.COMPACT and \
-                    not self._isMenuButtonVisible:
-                self.expand()
+            
+            # 优先检查自动伸缩
+            if self._isAutoResizeEnabled:
+                self._checkAutoResize(w)
+            else:
+                # 原有的逻辑
+                if w < self.minimumExpandWidth and self.displayMode == NavigationDisplayMode.EXPAND:
+                    self.collapse()
+                elif w >= self.minimumExpandWidth and self.displayMode == NavigationDisplayMode.COMPACT and \
+                        not self._isMenuButtonVisible:
+                    self.expand()
 
         return super().eventFilter(obj, e)
 
