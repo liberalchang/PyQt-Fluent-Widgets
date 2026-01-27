@@ -1,11 +1,14 @@
 # coding: utf-8
-from typing import List, Union
+from typing import List, Union, Optional, Callable
+from dataclasses import dataclass
+from datetime import datetime
+import os
 
-from PySide6.QtCore import Qt, QMargins, QModelIndex, QItemSelectionModel, Property, QRectF, QEvent
-from PySide6.QtGui import QHelpEvent, QPainter, QColor, QKeyEvent, QPalette, QBrush
+from PySide6.QtCore import Qt, QMargins, QModelIndex, QRect, QItemSelectionModel, Property, QRectF, QEvent, Signal
+from PySide6.QtGui import QHelpEvent, QPainter, QColor, QKeyEvent, QPalette, QBrush, QIcon, QFont
 from PySide6.QtWidgets import (QAbstractItemView, QStyledItemDelegate, QApplication, QStyleOptionViewItem,
                              QTableView, QTableWidget, QWidget, QTableWidgetItem, QStyle,
-                             QStyleOptionButton, QStyleFactory)
+                             QStyleOptionButton, QStyleFactory, QHeaderView, QHBoxLayout, QLabel)
 
 from .check_box import CheckBoxIcon
 from ...common.font import getFont
@@ -14,6 +17,7 @@ from ...common.style_sheet import isDarkTheme, FluentStyleSheet, updateDynamicSt
 from .line_edit import LineEdit
 from .scroll_bar import SmoothScrollDelegate
 from .tool_tip import ItemViewToolTipDelegate, ItemViewToolTipType
+from ...common.icon import FluentIcon as FIF, AntDesignIcon as AIF
 
 
 class TableItemDelegate(QStyledItemDelegate):
@@ -346,9 +350,402 @@ class TableWidget(TableBase, QTableWidget):
     selectRightClickedRow = Property(bool, isSelectRightClickedRow, setSelectRightClickedRow)
 
 
+class SortableHeaderView(QHeaderView):
+    """ 支持排序的表头视图 """
+    
+    sortRequested = Signal(int, object)  # 列索引，排序顺序（可能为None）
+    
+    def __init__(self, orientation=Qt.Horizontal, parent=None):
+        super().__init__(orientation, parent)
+        self._sort_column = -1
+        self._sort_order = Qt.AscendingOrder
+        self.setSectionsClickable(True)
+        self.sectionClicked.connect(self._on_section_clicked)
+        
+        # 启用排序指示器 - 使用Qt内置机制
+        # 延迟调用，确保在QSS加载后生效
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(0, lambda: self.setSortIndicatorShown(True))
+        
+        # 设置初始排序指示器状态（无排序）
+        super().setSortIndicator(-1, Qt.AscendingOrder)
+        
+        # 设置对象名称以便QSS样式应用
+        self.setObjectName("SortableHeaderView")
+        
+    def _on_section_clicked(self, logical_index: int):
+        """ 表头点击事件 """
+        if logical_index == self._sort_column:
+            # 同一列，循环切换排序顺序：降序 -> 升序 -> 无排序
+            if self._sort_order == Qt.DescendingOrder:
+                new_order = Qt.AscendingOrder
+            elif self._sort_order == Qt.AscendingOrder:
+                new_order = None  # 无排序状态
+            else:
+                new_order = Qt.DescendingOrder
+        else:
+            # 不同列，默认降序
+            new_order = Qt.DescendingOrder
+            
+        self.sortRequested.emit(logical_index, new_order)
+        
+    def paintSection(self, painter, rect, logical_index):
+        """ 使用Qt默认的表头绘制，让内置排序指示器显示图标 """
+        super().paintSection(painter, rect, logical_index)
+        
+    def setSortIndicator(self, column: int, order):
+        """ 设置排序指示器 """
+        self._sort_column = column
+        self._sort_order = order if order is not None else Qt.AscendingOrder
+        super().setSortIndicator(column, order if order is not None else Qt.AscendingOrder)
+        self.viewport().update()  # 重绘表头
+        
+    def getSortColumn(self) -> int:
+        """ 获取当前排序列 """
+        return self._sort_column
+        
+    def getSortOrder(self) -> Qt.SortOrder:
+        """ 获取当前排序顺序 """
+        return self._sort_order
+
+
+class SortableTableMixin:
+    """ 可排序表格混入类 """
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._sort_column = -1
+        self._sort_order = Qt.AscendingOrder
+        self._sort_key_functions = {}  # 自定义排序键函数
+        self._original_data = None  # 保存原始数据
+        
+        # 排序缓存系统 - 优化版本
+        self._sort_cache = {}  # {column: {'unsorted': [], 'ascending': [], 'descending': []}}
+        self._data_version = 0  # 数据版本号，用于检测数据变化
+        self._cache_version = {}  # 缓存版本号 {column: version}
+        
+        self._setup_sortable_header()
+        
+    def _setup_sortable_header(self):
+        """ 设置可排序表头 """
+        if hasattr(self, 'horizontalHeader'):
+            header = SortableHeaderView(Qt.Horizontal, self)
+            header.sortRequested.connect(self._handle_sort_request)
+            self.setHorizontalHeader(header)
+            
+    def _handle_sort_request(self, column: int, order):
+        """ 处理排序请求 """
+        if order is None:
+            # 无排序状态，恢复原始顺序
+            self._restore_original_order()
+        else:
+            self._sort_column = column
+            self._sort_order = order
+            self._sort_data()
+        
+    def setSortKeyFunction(self, column: int, key_func: Callable):
+        """ 设置列的自定义排序键函数 """
+        self._sort_key_functions[column] = key_func
+        
+    def _get_sort_key(self, row_data: dict, column: int):
+        """ 获取排序键 """
+        # 如果有自定义排序函数，使用自定义函数
+        if column in self._sort_key_functions:
+            sort_func = self._sort_key_functions[column]
+            # 检查是否是get_file_sort_key函数，如果是，需要传递column参数
+            if sort_func.__name__ == 'get_file_sort_key':
+                return sort_func(row_data, column)
+            else:
+                return sort_func(row_data)
+            
+        # 默认排序逻辑
+        value = row_data.get(column, "")
+        
+        # 文件类型排序
+        if column == 0:  # 名称列，同时考虑文件类型
+            name = str(value)
+            is_dir = row_data.get('_is_dir', False)
+            dir_priority = 0 if is_dir else 1
+            return (dir_priority, name.lower())
+            
+        # 大小排序
+        elif column == 1:  # 大小列
+            if isinstance(value, (int, float)):
+                return value
+            # 尝试从字符串解析大小
+            size_str = str(value).upper()
+            if 'B' in size_str:
+                try:
+                    if 'KB' in size_str:
+                        return float(size_str.replace('KB', '').strip()) * 1024
+                    elif 'MB' in size_str:
+                        return float(size_str.replace('MB', '').strip()) * 1024 * 1024
+                    elif 'GB' in size_str:
+                        return float(size_str.replace('GB', '').strip()) * 1024 * 1024 * 1024
+                    else:
+                        return float(size_str.replace('B', '').strip())
+                except ValueError:
+                    return 0
+            return 0
+            
+        # 日期排序
+        elif column == 2:  # 日期列
+            if isinstance(value, datetime):
+                return value
+            # 尝试解析日期字符串
+            date_str = str(value)
+            try:
+                # 常见日期格式
+                for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d', '%Y/%m/%d %H:%M:%S', '%Y/%m/%d']:
+                    try:
+                        return datetime.strptime(date_str, fmt)
+                    except ValueError:
+                        continue
+            except ValueError:
+                pass
+            return datetime.min
+            
+        # 其他列按字符串排序
+        return str(value).lower()
+        
+    def _sort_data(self):
+        """ 排序数据 - 子类需要实现 """
+        raise NotImplementedError("子类必须实现 _sort_data 方法")
+        
+    def getSortColumn(self) -> int:
+        """ 获取当前排序列 """
+        return self._sort_column
+        
+    def getSortOrder(self) -> Qt.SortOrder:
+        """ 获取当前排序顺序 """
+        return self._sort_order
+
+
+class SortableTableWidget(SortableTableMixin, TableWidget):
+    """ 可排序的表格控件 """
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._row_data = {}  # 存储每行的原始数据
+        
+    def setRowCount(self, rows: int):
+        """ 设置行数 """
+        super().setRowCount(rows)
+        # 更新行数据字典
+        current_rows = self._row_data.copy()
+        self._row_data = {}
+        for row in range(rows):
+            if row in current_rows:
+                self._row_data[row] = current_rows[row]
+            else:
+                self._row_data[row] = {}
+                
+    def setItem(self, row: int, column: int, item: QTableWidgetItem):
+        """ 设置表格项 """
+        super().setItem(row, column, item)
+        # 更新行数据
+        if row not in self._row_data:
+            self._row_data[row] = {}
+        self._row_data[row][column] = item.text()
+        
+        # 存储额外的排序信息
+        if column == 0:  # 名称列
+            # 检查是否为目录（这里简化处理，实际可能需要更复杂的逻辑）
+            name = item.text()
+            is_dir = name.endswith('/') or '.' not in name
+            self._row_data[row]['_is_dir'] = is_dir
+            
+        # 只有在非排序重排时才增加版本号和清除缓存
+        if not hasattr(self, '_is_rearranging') or not self._is_rearranging:
+            self._data_version += 1
+            # 只有数据变化（增加/删除）才清除缓存，排序不清除缓存
+            self._invalidate_data_cache()
+            
+            # 自动保存原始数据（数据变化时）
+            self._save_original_data()
+    
+    def _invalidate_data_cache(self):
+        """ 清除数据缓存（数据变化时） """
+        self._sort_cache.clear()
+        self._cache_version.clear()
+    
+    def _invalidate_sort_cache(self):
+        """ 清除排序缓存（可选，一般不调用） """
+        self._sort_cache.clear()
+        self._cache_version.clear()
+    
+    def _get_cached_sort_order(self, column: int):
+        """ 获取缓存的排序结果 - 基于原始数据的下标映射 """
+        if column not in self._sort_cache:
+            return None
+        
+        # 检查原始数据是否存在
+        if self._original_data is None:
+            return None
+        
+        return self._sort_cache[column]
+    
+    def _cache_sort_order(self, column: int, unsorted_order: list, ascending_order: list, descending_order: list):
+        """ 缓存排序结果 - 基于原始数据的下标映射 """
+        # 只有在原始数据状态下才缓存
+        if self._original_data is None:
+            return
+        
+        self._sort_cache[column] = {
+            'unsorted': unsorted_order,      # 原始顺序下标
+            'ascending': ascending_order,    # 升序顺序下标  
+            'descending': descending_order   # 降序顺序下标
+        }
+        self._cache_version[column] = self._data_version
+    
+    def _compute_sort_orders(self, column: int):
+        """ 计算并缓存所有排序顺序 - 基于原始数据的下标映射 """
+        # 基于原始数据计算排序
+        if self._original_data is None:
+            return [], [], []
+        
+        # 获取原始数据的排序键
+        sort_keys = []
+        for row_idx, row_data in self._original_data.items():
+            sort_key = self._get_sort_key(row_data, column)
+            sort_keys.append((row_idx, sort_key))
+        
+        # 按排序键排序（升序）
+        sorted_ascending = sorted(sort_keys, key=lambda x: x[1])
+        ascending_order = [item[0] for item in sorted_ascending]
+        
+        # 降序就是升序的反转
+        descending_order = ascending_order[::-1]
+        
+        # 未排序顺序就是原始顺序
+        unsorted_order = list(self._original_data.keys())
+        unsorted_order.sort()  # 确保顺序一致
+        
+        # 缓存结果 - 基于原始数据的下标映射
+        self._cache_sort_order(column, unsorted_order, ascending_order, descending_order)
+        
+        return unsorted_order, ascending_order, descending_order
+    
+    def _save_original_data(self):
+        self._original_data = {}
+        for row in range(self.rowCount()):
+            if self.item(row, 0):  # 只保存有数据的行
+                self._original_data[row] = {}
+                for col in range(self.columnCount()):
+                    if self.item(row, col):
+                        self._original_data[row][col] = self.item(row, col).text()
+                # 复制其他属性
+                if row in self._row_data:
+                    for key, value in self._row_data[row].items():
+                        if not isinstance(key, int):  # 跳过列数据
+                            self._original_data[row][key] = value
+    
+    def saveOriginalData(self):
+        """ 手动保存原始数据 """
+        self._save_original_data()
+                            
+    def _restore_original_order(self):
+        """ 恢复原始顺序 """
+        if self._original_data is None:
+            return
+            
+        # 重置排序状态
+        self._sort_column = -1
+        self._sort_order = Qt.AscendingOrder
+        
+        # 清空表格
+        self.clearContents()
+        self.setRowCount(len(self._original_data))
+        
+        # 按原始顺序恢复数据
+        new_row_data = {}
+        for row, data in self._original_data.items():
+            for col, text in data.items():
+                if isinstance(col, int):  # 只处理列数据
+                    item = QTableWidgetItem(text)
+                    # 直接设置项目，不调用setItem避免递归
+                    super().setItem(row, col, item)
+                    
+            # 复制行数据
+            new_row_data[row] = data.copy()
+            
+        self._row_data = new_row_data
+        
+        # 更新表头排序指示器
+        if hasattr(self, 'horizontalHeader'):
+            header = self.horizontalHeader()
+            if isinstance(header, SortableHeaderView):
+                header.setSortIndicator(-1, Qt.AscendingOrder)
+            
+    def _sort_data(self):
+        """ 高性能排序表格数据 """
+        if self._sort_column < 0:
+            return
+        
+        # 尝试从缓存获取排序结果
+        cached_order = self._get_cached_sort_order(self._sort_column)
+        
+        if cached_order:
+            unsorted_order = cached_order['unsorted']
+            ascending_order = cached_order['ascending']
+            descending_order = cached_order['descending']
+        else:
+            unsorted_order, ascending_order, descending_order = self._compute_sort_orders(self._sort_column)
+        
+        # 根据排序顺序选择对应的行顺序
+        if self._sort_order == Qt.AscendingOrder:
+            sorted_rows = ascending_order
+        elif self._sort_order == Qt.DescendingOrder:
+            sorted_rows = descending_order
+        else:
+            sorted_rows = unsorted_order
+        
+        # 高效数据重排
+        self._rearrange_data_fast(sorted_rows)
+        
+        # 更新表头排序指示器
+        if hasattr(self, 'horizontalHeader'):
+            header = self.horizontalHeader()
+            if isinstance(header, SortableHeaderView):
+                header.setSortIndicator(self._sort_column, self._sort_order)
+    
+    def _rearrange_data_fast(self, sorted_rows: list):
+        """ 高效数据重排 - 基于原始数据的下标映射 """
+        # 标记正在重排，避免清除缓存
+        self._is_rearranging = True
+        
+        # 基于原始数据构建排序后的数据
+        sorted_data = []
+        for row_idx in sorted_rows:
+            if row_idx in self._original_data:
+                sorted_data.append(self._original_data[row_idx])
+        
+        # 清空表格并重新设置行数
+        self.clearContents()
+        self.setRowCount(len(sorted_data))
+        
+        # 按新顺序放回数据
+        new_row_data = {}
+        
+        for new_row, row_data in enumerate(sorted_data):
+            for col in range(self.columnCount()):
+                if col in row_data:
+                    item = QTableWidgetItem(row_data[col])
+                    # 直接设置项目，不调用setItem避免递归
+                    super().setItem(new_row, col, item)
+                    
+            # 创建新的行数据
+            new_row_data[new_row] = row_data.copy()
+            
+        self._row_data = new_row_data
+        
+        # 结束重排标记
+        self._is_rearranging = False
+
+
 class TableView(TableBase, QTableView):
     """ Table view """
-
+    
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -359,3 +756,97 @@ class TableView(TableBase, QTableView):
         self._isSelectRightClickedRow = isSelect
 
     selectRightClickedRow = Property(bool, isSelectRightClickedRow, setSelectRightClickedRow)
+
+
+class SortableTableView(SortableTableMixin, TableView):
+    """ 可排序的表格视图 """
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        
+    def _sort_data(self):
+        """ 排序模型数据 """
+        if self._sort_column < 0 or not self.model():
+            return
+            
+        # 让模型处理排序
+        self.model().sort(self._sort_column, self._sort_order)
+        
+        # 更新表头排序指示器
+        if hasattr(self, 'horizontalHeader'):
+            header = self.horizontalHeader()
+            if isinstance(header, SortableHeaderView):
+                header.setSortIndicator(self._sort_column, self._sort_order)
+
+
+# 文件管理专用的排序函数
+def get_file_sort_key(file_info: dict, column: int):
+    """ 文件管理排序键函数 """
+    name = file_info.get('name', '')
+    is_dir = file_info.get('is_dir', False)
+    size = file_info.get('size', 0)
+    mtime = file_info.get('mtime', datetime.min)
+    
+    # 目录优先
+    dir_priority = 0 if is_dir else 1
+    
+    if column == 0:  # 名称列
+        return (dir_priority, name.lower())
+    elif column == 1:  # 大小列
+        return (dir_priority, size if isinstance(size, (int, float)) else 0)
+    elif column == 2:  # 日期列
+        return (dir_priority, mtime if isinstance(mtime, datetime) else datetime.min)
+    else:
+        # 其他列
+        value = file_info.get(str(column), '')
+        return (dir_priority, str(value).lower())
+
+
+def create_file_sort_adapter(column: int):
+    """创建文件排序函数适配器"""
+    def adapter(file_info: dict):
+        return get_file_sort_key(file_info, column)
+    return adapter
+
+
+# 为现有类添加排序功能的便捷函数
+def make_table_sortable(table, sort_key_func: Callable = None):
+    """ 使现有表格支持排序 """
+    if isinstance(table, TableWidget):
+        # 创建新的可排序表格并复制数据
+        sortable_table = SortableTableWidget(table.parent())
+        
+        # 复制表头
+        sortable_table.setColumnCount(table.columnCount())
+        for col in range(table.columnCount()):
+            header_item = table.horizontalHeaderItem(col)
+            if header_item:
+                sortable_table.setHorizontalHeaderItem(col, QTableWidgetItem(header_item))
+                
+        # 复制数据
+        sortable_table.setRowCount(table.rowCount())
+        for row in range(table.rowCount()):
+            for col in range(table.columnCount()):
+                item = table.item(row, col)
+                if item:
+                    sortable_table.setItem(row, col, QTableWidgetItem(item))
+                    
+        # 设置自定义排序函数
+        if sort_key_func:
+            sortable_table.setSortKeyFunction(0, sort_key_func)
+            
+        return sortable_table
+        
+    elif isinstance(table, TableView):
+        # 为TableView添加排序功能
+        if hasattr(table, 'model') and table.model():
+            # 创建新的可排序视图
+            sortable_view = SortableTableView(table.parent())
+            sortable_view.setModel(table.model())
+            
+            if sort_key_func:
+                sortable_view.setSortKeyFunction(0, sort_key_func)
+                
+            return sortable_view
+            
+    return table

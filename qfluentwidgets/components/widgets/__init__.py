@@ -29,7 +29,8 @@ from .spin_box import (SpinBox, DoubleSpinBox, DateEdit, DateTimeEdit, TimeEdit,
 from .stacked_widget import PopUpAniStackedWidget, OpacityAniStackedWidget, TransitionStackedWidget, EntranceTransitionStackedWidget, DrillInTransitionStackedWidget
 from .state_tool_tip import StateToolTip
 from .switch_button import SwitchButton, IndicatorPosition
-from .table_view import TableView, TableWidget, TableItemDelegate
+from .table_view import (TableView, TableWidget, TableItemDelegate, SortableTableWidget, SortableTableView, 
+                          SortableHeaderView, make_table_sortable, get_file_sort_key, create_file_sort_adapter)
 from .tool_tip import ToolTip, ToolTipFilter, ToolTipPosition
 from .tree_view import TreeWidget, TreeView, TreeItemDelegate
 from .cycle_list_widget import CycleListWidget

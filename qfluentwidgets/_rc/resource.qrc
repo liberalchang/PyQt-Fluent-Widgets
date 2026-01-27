@@ -82,6 +82,16 @@
     <file>i18n/qfluentwidgets.zh_TW.qm</file>
   </qresource>
   <qresource prefix="icon">
+    <file>images/table_view/blackfolder.svg</file>
+    <file>images/table_view/Down_black.svg</file>
+    <file>images/table_view/Down_white.svg</file>
+    <file>images/table_view/file.svg</file>
+    <file>images/table_view/folder.svg</file>
+    <file>images/table_view/image.svg</file>
+    <file>images/table_view/text.svg</file>
+    <file>images/table_view/Up_black.svg</file>
+    <file>images/table_view/Up_white.svg</file>
+    <file>images/table_view/video.svg</file>
     <file>images/color_dialog/Clear_black.svg</file>
     <file>images/color_dialog/Clear_white.svg</file>
     <file>images/color_dialog/HuePanel.png</file>

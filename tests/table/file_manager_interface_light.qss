@@ -1,0 +1,21 @@
+#fileManagerInterface {
+    background-color: transparent;
+}
+
+#pathStatusDot {
+    border-radius: 5px;
+    background-color: rgba(255, 0, 0, 170);
+}
+
+#pathStatusDot[status="ok"] {
+    background-color: rgba(0, 180, 0, 170);
+}
+
+#pathStatusDot[status="busy"] {
+    background-color: rgba(255, 140, 0, 180);
+}
+
+#pathSeparator {
+    background-color: rgba(0, 0, 0, 30);
+}
+

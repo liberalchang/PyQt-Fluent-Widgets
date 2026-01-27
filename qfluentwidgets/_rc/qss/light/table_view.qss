@@ -33,12 +33,55 @@ QHeaderView {
 }
 
 QHeaderView::section {
-    background-color: transparent;
+    background-color: rgba(240, 240, 240, 0.8);
     color: rgb(96, 96, 96);
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
     border: 1px solid rgba(0, 0, 0, 15);
-    font: 13px --FontFamilies;
+    font: bold 13px --FontFamilies;
+}
+
+QHeaderView::section:hover {
+    background-color: rgba(232, 232, 232, 0.9);
+}
+
+QHeaderView::section:pressed {
+    background-color: rgba(216, 216, 216, 0.9);
+}
+
+SortableHeaderView::section {
+    background-color: rgba(240, 240, 240, 0.8);
+    color: rgb(51, 51, 51);
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    border: 1px solid rgba(0, 0, 0, 15);
+    font: bold 13px --FontFamilies;
+}
+
+SortableHeaderView::section:hover {
+    background-color: rgba(232, 232, 232, 0.9);
+}
+
+SortableHeaderView::section:pressed {
+    background-color: rgba(216, 216, 216, 0.9);
+}
+
+SortableHeaderView::down-arrow {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    margin-right: 6px;
+    image: url(:/icon/images/table_view/Down_black.svg);
+}
+
+SortableHeaderView::up-arrow {
+    subcontrol-origin: padding;
+    subcontrol-position: center right;
+    margin-right: 6px;
+    image: url(:/icon/images/table_view/Up_black.svg);
 }
 
 QHeaderView::section:horizontal {
@@ -66,14 +109,14 @@ QHeaderView::down-arrow {
     subcontrol-origin: padding;
     subcontrol-position: center right;
     margin-right: 6px;
-    image: url(:/qfluentwidgets/images/table_view/Down_black.svg);
+    image: url(:/icon/images/table_view/Down_black.svg);
 }
 
 QHeaderView::up-arrow {
     subcontrol-origin: padding;
     subcontrol-position: center right;
     margin-right: 6px;
-    image: url(:/qfluentwidgets/images/table_view/Up_black.svg);
+    image: url(:/icon/images/table_view/Up_black.svg);
 }
 
 QTableCornerButton::section {

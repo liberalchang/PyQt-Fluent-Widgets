@@ -37,4 +37,4 @@ PySide2_Fluent_Widgets.egg-info/
 .trae/
 examples/
 app/
-tests/
+# tests/
