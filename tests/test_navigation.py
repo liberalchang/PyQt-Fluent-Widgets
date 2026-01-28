@@ -37,9 +37,10 @@ class Window(FluentWindow):
 
         # add items to navigation interface
         self.initNavigation()
+        self.navigationInterface.setAutoResizeEnabled(True)
 
         self.resize(900, 700)
-        self.setWindowTitle('PySide6-Fluent-Widgets Navigation Test')
+        self.setWindowTitle('Navigation Test')
 
     def initNavigation(self):
         self.addSubInterface(self.searchInterface, FIF.SEARCH, 'Search')

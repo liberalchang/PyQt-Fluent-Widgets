@@ -107,14 +107,16 @@ class NavigationPanel(QFrame):
         else:
             self.displayMode = NavigationDisplayMode.COMPACT
 
-        self.__initWidget()
+        self.__initLayout()  # 先初始化布局
+        self.__initWidget()  # 再初始化widget
 
     def __initWidget(self):
         self.resize(48, self.height())
         self.setAttribute(Qt.WA_StyledBackground)
         self.window().installEventFilter(self)
 
-        self.returnButton.setVisible(self._isReturnButtonVisible)
+        # 使用新的方法来设置ReturnButton的初始状态
+        self.setReturnButtonVisible(self._isReturnButtonVisible)
         self.returnButton.setDisabled(True)
 
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -144,11 +146,11 @@ class NavigationPanel(QFrame):
         self.setProperty('menu', False)
         FluentStyleSheet.NAVIGATION_INTERFACE.apply(self)
         FluentStyleSheet.NAVIGATION_INTERFACE.apply(self.scrollWidget)
-        self.__initLayout()
+        # 移除重复的__initLayout()调用，已经在__init__中调用过了
 
     def __initLayout(self):
-        self.vBoxLayout.setContentsMargins(0, 5, 0, 5)
-        self.topLayout.setContentsMargins(4, 0, 4, 0)
+        self.vBoxLayout.setContentsMargins(0, 32, 0, 5)  # 顶部边距32px (完全避免重叠)
+        self.topLayout.setContentsMargins(4, 4, 4, 4)  # 增加topLayout的内边距
         self.bottomLayout.setContentsMargins(4, 0, 4, 0)
         self.scrollLayout.setContentsMargins(4, 0, 4, 0)
         self.vBoxLayout.setSpacing(4)
@@ -165,7 +167,13 @@ class NavigationPanel(QFrame):
         self.scrollLayout.setAlignment(Qt.AlignTop)
         self.bottomLayout.setAlignment(Qt.AlignBottom)
 
-        self.topLayout.addWidget(self.returnButton, 0, Qt.AlignTop)
+        # 创建一个固定高度的spacer来保持MenuButton位置
+        self.returnButtonSpacer = QWidget()
+        self.returnButtonSpacer.setFixedSize(40, 36)  # 与NavigationToolButton大小相同
+        self.returnButtonSpacer.hide()  # 默认隐藏
+        
+        # 只添加spacer到布局，ReturnButton通过动态添加/移除来管理
+        self.topLayout.addWidget(self.returnButtonSpacer, 0, Qt.AlignTop)
         self.topLayout.addWidget(self.menuButton, 0, Qt.AlignTop)
 
     def _updateAcrylicColor(self):
@@ -522,7 +530,20 @@ class NavigationPanel(QFrame):
     def setReturnButtonVisible(self, isVisible: bool):
         """ set whether the return button is visible """
         self._isReturnButtonVisible = isVisible
-        self.returnButton.setVisible(isVisible)
+        
+        # 动态添加/移除ReturnButton，隐藏时让MenuButton向上移动
+        if isVisible:
+            # 显示ReturnButton：添加到布局，隐藏spacer
+            if self.topLayout.indexOf(self.returnButton) == -1:
+                self.topLayout.insertWidget(0, self.returnButton, 0, Qt.AlignTop)
+            self.returnButton.show()
+            self.returnButtonSpacer.hide()
+        else:
+            # 隐藏ReturnButton：从布局移除，不显示spacer，让MenuButton向上移动
+            self.returnButton.hide()
+            if self.topLayout.indexOf(self.returnButton) != -1:
+                self.topLayout.removeWidget(self.returnButton)
+            self.returnButtonSpacer.hide()  # 不显示spacer，让MenuButton向上移动
 
     def setCollapsible(self, on: bool):
         self._isCollapsible = on
