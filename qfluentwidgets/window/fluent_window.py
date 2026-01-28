@@ -619,3 +619,126 @@ class FluentBackgroundTheme:
     """ Fluent background theme """
     DEFAULT = (QColor(243, 243, 243), QColor(32, 32, 32))   # light, dark
     DEFAULT_BLUE = (QColor(240, 244, 249), QColor(25, 33, 42))
+
+
+class TopNavigationFluentWindow(FluentWindowBase):
+    """ Fluent window with top navigation bar """
+
+    def __init__(self, parent=None, showReturnButton=False):
+        """
+        Parameters
+        ----------
+        parent: QWidget
+            parent widget
+            
+        showReturnButton: bool
+            whether to show return button in navigation bar
+        """
+        super().__init__(parent)
+        self.setTitleBar(FluentTitleBar(self))
+
+        from ..components.navigation import TopNavigationBar
+        self.navigationBar = TopNavigationBar(self, showReturnButton=showReturnButton)
+        self.navigationInterface = self.navigationBar  # For compatibility with base class
+        
+        self.vBoxLayout = QVBoxLayout()
+
+        # initialize layout
+        self.hBoxLayout.addLayout(self.vBoxLayout, 1)
+        self.vBoxLayout.setContentsMargins(0, 48, 0, 0)
+        self.vBoxLayout.setSpacing(0)
+        
+        self.vBoxLayout.addWidget(self.navigationBar)
+        self.vBoxLayout.addWidget(self.stackedWidget, 1)
+
+        self.titleBar.raise_()
+
+    def addSubInterface(self, interface: QWidget, icon: Union[FluentIconBase, QIcon, str], text: str,
+                        selectedIcon=None, position=NavigationItemPosition.SCROLL, 
+                        isTransparent=False) -> 'TopNavigationBarPushButton':
+        """ add sub interface, the object name of `interface` should be set already
+        before calling this method
+
+        Parameters
+        ----------
+        interface: QWidget
+            the subinterface to be added
+
+        icon: FluentIconBase | QIcon | str
+            the icon of navigation item
+
+        text: str
+            the text of navigation item
+
+        selectedIcon: str | QIcon | FluentIconBase
+            the icon of navigation item in selected state
+
+        position: NavigationItemPosition
+            the position of navigation item (TOP->LEFT, SCROLL->SCROLL, BOTTOM->RIGHT)
+            
+        isTransparent: bool
+            whether to use transparent background
+
+        Returns
+        -------
+        TopNavigationBarPushButton
+            the created navigation button
+        """
+        if not interface.objectName():
+            raise ValueError("The object name of `interface` can't be empty string.")
+
+        interface.setProperty("isStackedTransparent", isTransparent)
+        self.stackedWidget.addWidget(interface)
+
+        # add navigation item
+        routeKey = interface.objectName()
+        item = self.navigationBar.addItem(
+            routeKey=routeKey,
+            icon=icon,
+            text=text,
+            onClick=lambda: self.switchTo(interface),
+            selectedIcon=selectedIcon,
+            position=position
+        )
+
+        # initialize selected item
+        if self.stackedWidget.count() == 1:
+            self.navigationBar.setStackedWidget(self.stackedWidget)
+            self.stackedWidget.currentChanged.connect(self._onCurrentInterfaceChanged)
+            self.navigationBar.setCurrentItem(routeKey)
+            qrouter.setDefaultRouteKey(self.stackedWidget, routeKey)
+
+        self._updateStackedBackground()
+
+        return item
+
+    def removeInterface(self, interface: QWidget, isDelete=False):
+        """ remove sub interface
+
+        Parameters
+        ----------
+        interface: QWidget
+            sub interface to be removed
+
+        isDelete: bool
+            whether to delete the sub interface
+        """
+        self.navigationBar.removeWidget(interface.objectName())
+        self.stackedWidget.removeWidget(interface)
+        interface.hide()
+
+        if isDelete:
+            interface.deleteLater()
+
+    def setResponsiveWidth(self, hideWidth: int, showWidth: int):
+        """ set responsive width thresholds for navigation text
+        
+        Parameters
+        ----------
+        hideWidth: int
+            window width threshold to hide text (show icon only)
+            
+        showWidth: int
+            window width threshold to show text
+        """
+        self.navigationBar.setResponsiveWidth(hideWidth, showWidth)
