@@ -22,7 +22,7 @@ setuptools.setup(
         "darkdetect",
     ],
     extras_require = {
-        'full': ['scipy', 'pillow', 'colorthief', 'PySide6-Addons']
+        'full': ['scipy', 'pillow', 'colorthief', 'PySide6-Addons', 'vispy>=0.9.0', 'numpy>=1.20.0', 'PyOpenGL>=3.1.0']
     },
     classifiers=[
         'Programming Language :: Python :: 3',

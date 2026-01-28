@@ -9,7 +9,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QFrame
 
 from qfluentwidgets import (NavigationItemPosition, FluentWindow,
-                            FluentIcon as FIF)
+                            FluentIcon as FIF, Theme, setTheme)
 
 
 class Widget(QFrame):
@@ -27,6 +27,9 @@ class Window(FluentWindow):
 
     def __init__(self):
         super().__init__(showReturnButton=True)
+
+        # 启用云母特效（Windows 11）
+        self.setMicaEffectEnabled(True)
 
         # create sub interfaces
         self.searchInterface = Widget('Search Interface', self)
@@ -51,9 +54,18 @@ class Window(FluentWindow):
         self.navigationInterface.addSeparator()
 
         self.addSubInterface(self.settingInterface, FIF.SETTING, 'Settings', NavigationItemPosition.BOTTOM)
+    
+    # def resizeEvent(self, e):
+    #     """重写 resizeEvent 以确保窗口特效在最大化后仍然有效"""
+    #     super().resizeEvent(e)
+    #     # 注意：由于 FluentWidget 现在已经内置了 OpenGL 修复和延迟初始化，
+    #     # 这个方法主要是为了向后兼容和额外保险
 
 
 if __name__ == '__main__':
+    # 设置主题（可选择 Theme.LIGHT 或 Theme.DARK）
+    setTheme(Theme.LIGHT, save=False)  # 使用亮色主题以更好展示云母特效
+    
     app = QApplication(sys.argv)
     w = Window()
     w.show()

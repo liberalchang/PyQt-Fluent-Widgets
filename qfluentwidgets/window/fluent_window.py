@@ -6,6 +6,14 @@ from PySide6.QtCore import Qt, QSize, QRect, QRectF, QTimer
 from PySide6.QtGui import QIcon, QPainter, QColor
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QApplication, QGraphicsOpacityEffect
 
+# OpenGL 导入 - 用于修复云母特效最大化失效问题
+try:
+    from PySide6.QtOpenGLWidgets import QOpenGLWidget
+    from PySide6.QtGui import QSurfaceFormat
+    OPENGL_AVAILABLE = True
+except ImportError:
+    OPENGL_AVAILABLE = False
+
 from ..common.config import qconfig, WindowEffect
 from ..common.icon import FluentIconBase, toQIcon, drawIcon
 from ..common.router import qrouter
@@ -42,6 +50,14 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
         self.setTitleBar(FluentWidgetTitleBar(self))
 
         qconfig.themeChangedFinished.connect(self._onThemeChangedFinished)
+        
+        # 修复窗口特效最大化失效问题 - 添加隐藏的 OpenGL Widget
+        self._setupWindowEffectFix()
+        
+        # 延迟初始化窗口特效，确保完全显示后生效
+        if self._isMicaEnabled or self._isAcrylicEnabled:
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(200, self._delayedWindowEffectInit)
 
     def setCustomBackgroundColor(self, light, dark):
         """ set custom background color
@@ -161,6 +177,56 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
 
     def isAcrylicEffectEnabled(self):
         return self._isAcrylicEnabled
+
+    def _setupWindowEffectFix(self):
+        """设置窗口特效修复 - 解决最大化后失效问题
+        
+        通过添加隐藏的 OpenGL Widget 来创建 OpenGL 上下文，
+        这会触发 Windows DWM 的不同渲染管道，保持所有窗口特效的稳定性。
+        支持云母特效、亚克力特效等。
+        """
+        if not OPENGL_AVAILABLE or sys.platform != 'win32':
+            return
+            
+        try:
+            # 创建隐藏的 OpenGL Widget
+            self._windowEffectFixWidget = QOpenGLWidget(self)
+            self._windowEffectFixWidget.resize(1, 1)  # 最小化尺寸
+            self._windowEffectFixWidget.move(-100, -100)  # 移到不可见位置
+            
+            # 设置 OpenGL 格式以触发正确的渲染管道
+            fmt = QSurfaceFormat()
+            fmt.setDepthBufferSize(24)
+            fmt.setStencilBufferSize(8)
+            fmt.setSamples(4)  # 抗锯齿
+            self._windowEffectFixWidget.setFormat(fmt)
+            
+        except Exception:
+            # 如果创建失败，忽略错误，不影响正常功能
+            self._windowEffectFixWidget = None
+
+    def _delayedWindowEffectInit(self):
+        """延迟初始化窗口特效，确保完全显示后生效"""
+        if self._isMicaEnabled:
+            # 云母特效需要多次尝试和尺寸变化触发
+            self.setMicaEffectEnabled(True)
+            from PySide6.QtCore import QTimer
+            QTimer.singleShot(100, lambda: self.setMicaEffectEnabled(True))
+            QTimer.singleShot(300, self._triggerSizeChange)
+            # QTimer.singleShot(500, lambda: self.setMicaEffectEnabled(True))
+        elif self._isAcrylicEnabled:
+            # 亚克力特效通常一次就能生效
+            self.setAcrylicEffectEnabled(True)
+    
+    def _triggerSizeChange(self):
+        """触发微小的尺寸变化来激活云母特效"""
+        if self._isMicaEnabled:
+            # 保存当前尺寸
+            current_size = self.size()
+            # 微小改变尺寸
+            self.resize(current_size.width() + 1, current_size.height())
+            # 立即恢复原尺寸
+            self.resize(current_size)
 
     def setWindowTitleBarColor(self, color: Union[QColor, str]):
         """ set title label background color """
@@ -695,7 +761,7 @@ class TopNavigationFluentWindow(FluentWindowBase):
 
     def addSubInterface(self, interface: QWidget, icon: Union[FluentIconBase, QIcon, str], text: str,
                         selectedIcon=None, position=NavigationItemPosition.SCROLL, 
-                        isTransparent=False) -> 'TopNavigationBarPushButton':
+                        isTransparent=False) -> 'TopNavigationBarPushButton':  # noqa: F821
         """ add sub interface, the object name of `interface` should be set already
         before calling this method
 
