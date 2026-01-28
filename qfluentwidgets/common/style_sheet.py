@@ -121,6 +121,7 @@ class FluentStyleSheet(StyleSheetBase, Enum):
     """ Fluent style sheet """
 
     MENU = "menu"
+    MENU_BAR = "menu_bar"
     LABEL = "label"
     PIVOT = "pivot"
     BUTTON = "button"

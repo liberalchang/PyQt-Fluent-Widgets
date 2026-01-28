@@ -22,6 +22,7 @@
     <file>qss/light/list_view.qss</file>
     <file>qss/light/media_player.qss</file>
     <file>qss/light/menu.qss</file>
+    <file>qss/light/menu_bar.qss</file>
     <file>qss/light/message_dialog.qss</file>
     <file>qss/light/navigation_interface.qss</file>
     <file>qss/light/pips_pager.qss</file>
@@ -57,6 +58,7 @@
     <file>qss/dark/list_view.qss</file>
     <file>qss/dark/media_player.qss</file>
     <file>qss/dark/menu.qss</file>
+    <file>qss/dark/menu_bar.qss</file>
     <file>qss/dark/message_dialog.qss</file>
     <file>qss/dark/navigation_interface.qss</file>
     <file>qss/dark/pips_pager.qss</file>

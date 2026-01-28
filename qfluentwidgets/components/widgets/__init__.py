@@ -20,6 +20,7 @@ from .list_view import ListWidget, ListView, ListItemDelegate
 from .menu import (DWMMenu, LineEditMenu, RoundMenu, MenuAnimationManager, MenuAnimationType, IndicatorMenuItemDelegate,
                    MenuItemDelegate, ShortcutMenuItemDelegate, CheckableMenu, MenuIndicatorType, SystemTrayMenu,
                    CheckableSystemTrayMenu)
+from .menu_bar import MenuBar, MenuBarItem
 from .info_bar import InfoBar, InfoBarIcon, InfoBarPosition, InfoBarManager
 from .info_badge import InfoBadge, InfoLevel, DotInfoBadge, IconInfoBadge, InfoBadgePosition, InfoBadgeManager
 from .scroll_area import SingleDirectionScrollArea, SmoothScrollArea, ScrollArea

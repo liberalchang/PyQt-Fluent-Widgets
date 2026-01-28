@@ -5,7 +5,7 @@ from typing import List, Union
 from qframelesswindow import WindowEffect
 from PySide6.QtCore import (QEasingCurve, QEvent, QPropertyAnimation, QObject, QModelIndex,
                           Qt, QSize, QRectF, Signal, QPoint, QTimer, QObject, QParallelAnimationGroup, QRect)
-from PySide6.QtGui import (QAction, QIcon, QColor, QPainter, QPen, QPixmap, QRegion, QCursor, QTextCursor, QHoverEvent,
+from PySide6.QtGui import (QAction, QActionGroup, QIcon, QColor, QPainter, QPen, QPixmap, QRegion, QCursor, QTextCursor, QHoverEvent,
                            QFontMetrics, QKeySequence)
 from PySide6.QtWidgets import (QApplication, QMenu, QProxyStyle, QStyle, QStyleFactory,
                                QGraphicsDropShadowEffect, QListWidget, QWidget, QHBoxLayout,
@@ -1248,8 +1248,30 @@ class CheckableMenu(RoundMenu):
 
     def __init__(self, title="", parent=None, indicatorType=MenuIndicatorType.CHECK):
         super().__init__(title, parent)
+        self.indicatorType = indicatorType
         self.view.setItemDelegate(createCheckableMenuItemDelegate(indicatorType))
         self.view.setObjectName('checkableListWidget')
+        
+        # 为单选菜单创建 QActionGroup 实现互斥
+        self.actionGroup = None
+        if indicatorType == MenuIndicatorType.RADIO:
+            self.actionGroup = QActionGroup(self)
+            self.actionGroup.setExclusive(True)
+
+    def addAction(self, action: Union[QAction, Action]):
+        """ add action to menu
+
+        Parameters
+        ----------
+        action: QAction
+            menu action
+        """
+        # 如果是单选菜单且 action 是可选的，添加到 action group
+        if self.actionGroup and action.isCheckable():
+            self.actionGroup.addAction(action)
+        
+        # 调用父类方法添加 action
+        super().addAction(action)
 
     def _adjustItemText(self, item: QListWidgetItem, action: QAction):
         w = super()._adjustItemText(item, action)

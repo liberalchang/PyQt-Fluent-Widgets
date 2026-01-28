@@ -1,0 +1,37 @@
+/* MenuBar 深色主题样式 */
+
+MenuBar {
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+}
+
+/* MenuBarItem 按钮基础样式 */
+QPushButton#menuBarItem {
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    color: rgb(255, 255, 255);
+    font: 14px --FontFamilies;
+    padding: 6px 12px;
+    margin: 0px 2px;
+    text-align: center;
+}
+
+/* 悬停效果 */
+QPushButton#menuBarItem:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 按下效果 */
+QPushButton#menuBarItem:pressed,
+QPushButton#menuBarItem:checked {
+    background-color: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* 禁用状态 */
+QPushButton#menuBarItem:disabled {
+    color: rgba(255, 255, 255, 0.4);
+    background-color: transparent;
+}

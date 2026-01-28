@@ -341,6 +341,9 @@ class FluentTitleBar(TitleBar):
         self.titleLabel.setObjectName('titleLabel')
         self.window().windowTitleChanged.connect(self.setTitle)
 
+        # menu bar placeholder (inserted at index 2)
+        self._menuBar = None
+
         self.vBoxLayout = QVBoxLayout()
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.setSpacing(0)
@@ -354,6 +357,23 @@ class FluentTitleBar(TitleBar):
         self.hBoxLayout.addLayout(self.vBoxLayout, 0)
 
         FluentStyleSheet.FLUENT_WINDOW.apply(self)
+
+    def setMenuBar(self, menuBar):
+        """Set menu bar in title bar"""
+        from ..components.widgets.menu_bar import MenuBar
+        
+        if self._menuBar:
+            self.hBoxLayout.removeWidget(self._menuBar)
+            self._menuBar.deleteLater()
+        
+        self._menuBar = menuBar
+        if menuBar:
+            # Insert menu bar after title label (at index 2)
+            self.hBoxLayout.insertWidget(2, menuBar, 1, Qt.AlignLeft | Qt.AlignVCenter)
+
+    def menuBar(self):
+        """Get current menu bar"""
+        return self._menuBar
 
     def setTitle(self, title):
         self.titleLabel.setText(title)
@@ -470,6 +490,26 @@ class FluentWindow(FluentWindowBase):
             self.navigationInterface.expand()
             
         super().resizeEvent(e)
+
+    def setMenuBar(self, menuBar):
+        """Set menu bar in title bar
+        
+        Parameters
+        ----------
+        menuBar: MenuBar
+            menu bar to set in the title bar
+        """
+        self.titleBar.setMenuBar(menuBar)
+
+    def menuBar(self):
+        """Get current menu bar
+        
+        Returns
+        -------
+        MenuBar
+            current menu bar or None if not set
+        """
+        return self.titleBar.menuBar()
 
 
 class MSFluentTitleBar(FluentTitleBar):
