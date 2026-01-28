@@ -126,6 +126,7 @@ class FluentStyleSheet(StyleSheetBase, Enum):
     BUTTON = "button"
     DIALOG = "dialog"
     SLIDER = "slider"
+    SPLITTER = "splitter"
     INFO_BAR = "info_bar"
     SPIN_BOX = "spin_box"
     TAB_VIEW = "tab_view"

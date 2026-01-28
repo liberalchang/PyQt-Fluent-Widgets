@@ -106,3 +106,22 @@ QSlider::handle:vertical:disabled {
     background-color: #808080;
     border: 5px solid #cccccc;
 }
+
+/* ToolTipSlider 特定样式 */
+ToolTipSlider {
+    /* 继承所有 QSlider 的样式 */
+}
+
+ToolTipSlider QToolTip {
+    background: rgba(243, 243, 243, 0.95);
+    color: rgb(32, 32, 32);
+    border: 1px solid rgba(200, 200, 200, 0.8);
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: "Segoe UI", sans-serif;
+    /* 移除系统默认样式 */
+    border-style: solid;
+    outline: none;
+    margin: 0px;
+}

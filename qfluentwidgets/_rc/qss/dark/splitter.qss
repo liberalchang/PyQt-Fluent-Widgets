@@ -1,0 +1,41 @@
+/* Fluent Splitter - Dark Theme */
+
+FluentSplitter {
+    background: transparent;
+}
+
+FluentSplitter::handle:horizontal {
+    width: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+}
+
+FluentSplitter::handle:vertical {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+}
+
+FluentSplitter::handle:hover {
+    background: --ThemeColorPrimary;
+}
+
+FluentSplitter::handle:pressed {
+    background: --ThemeColorDark1;
+}
+
+/* Collapse Button */
+CollapseButton {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 2px;
+}
+
+CollapseButton:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+CollapseButton:pressed {
+    background: rgba(255, 255, 255, 0.09);
+}

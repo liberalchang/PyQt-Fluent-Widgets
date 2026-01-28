@@ -1,5 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
 <RCC>
   <qresource prefix="qss">
+    <file>qss/dark/splitter.qss</file>
+    <file>qss/light/splitter.qss</file>
     <file>qss/light/button.qss</file>
     <file>qss/light/calendar_picker.qss</file>
     <file>qss/light/card_widget.qss</file>
@@ -534,10 +537,6 @@
     <file>images/spin_box/Down_white.svg</file>
     <file>images/spin_box/Up_black.svg</file>
     <file>images/spin_box/Up_white.svg</file>
-    <file>images/table_view/Down_black.svg</file>
-    <file>images/table_view/Down_white.svg</file>
-    <file>images/table_view/Up_black.svg</file>
-    <file>images/table_view/Up_white.svg</file>
     <file>images/tree_view/TreeViewClose_black.svg</file>
     <file>images/tree_view/TreeViewClose_white.svg</file>
     <file>images/tree_view/TreeViewOpen_black.svg</file>
