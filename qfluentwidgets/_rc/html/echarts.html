@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>ECharts</title>
+    <style>
+        html,
+        body,
+        #container {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+    </style>
+    <script src="qwebchannel.js"></script>
+    <script src="echarts.min.js"></script>
+</head>
+
+<body>
+    <div id="container"></div>
+    <script>
+        var chart = echarts.init(document.getElementById('container'));
+
+        // Handle window resize
+        window.onresize = function () {
+            chart.resize();
+        };
+
+        // Initialize WebChannel
+        new QWebChannel(qt.webChannelTransport, function (channel) {
+            window.bridge = channel.objects.bridge;
+        });
+
+        // API for Python
+        function setOption(option) {
+            chart.setOption(option);
+
+            // Re-bind click event if needed
+            chart.off('click');
+            chart.on('click', function (params) {
+                if (window.bridge) {
+                    // Extract relevant data to avoid circular reference in JSON.stringify
+                    var data = {
+                        componentType: params.componentType,
+                        seriesType: params.seriesType,
+                        seriesName: params.seriesName,
+                        name: params.name,
+                        dataIndex: params.dataIndex,
+                        data: params.data,
+                        value: params.value
+                    };
+                    window.bridge.onChartClick(JSON.stringify(data));
+                }
+            });
+        }
+
+        function clear() {
+            chart.clear();
+        }
+
+        function resize() {
+            chart.resize();
+        }
+    </script>
+</body>
+
+</html>

@@ -1750,4 +1750,9 @@
     <file>images/check_box/PartialAccept_black.svg</file>
     <file>images/check_box/PartialAccept_white.svg</file>
   </qresource>
+  <qresource prefix="html">
+    <file>html/echarts.html</file>
+    <file>html/echarts.min.js</file>
+    <file>html/qwebchannel.js</file>
+  </qresource>
 </RCC>
