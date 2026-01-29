@@ -1,6 +1,7 @@
-<?xml version='1.0' encoding='utf-8'?>
 <RCC>
   <qresource prefix="qss">
+    <file>qss/dark/tool_panel.qss</file>
+    <file>qss/light/tool_panel.qss</file>
     <file>qss/dark/splitter.qss</file>
     <file>qss/light/splitter.qss</file>
     <file>qss/light/button.qss</file>

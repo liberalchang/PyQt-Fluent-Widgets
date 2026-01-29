@@ -1,0 +1,80 @@
+/* Tool Panel - Light Theme */
+
+ToolPanel {
+    background-color: rgba(252, 252, 252, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+/* Tool Panel Button */
+ToolPanelButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    color: rgba(0, 0, 0, 0.9);
+    padding: 8px;
+    margin: 2px;
+}
+
+ToolPanelButton:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+ToolPanelButton:pressed {
+    background-color: rgba(0, 0, 0, 0.03);
+    color: rgba(0, 0, 0, 0.6);
+}
+
+ToolPanelButton:checked {
+    background-color: --ThemeColorPrimary;
+    color: white;
+    border: 1px solid --ThemeColorLight1;
+}
+
+ToolPanelButton:checked:hover {
+    background-color: --ThemeColorDark1;
+    border: 1px solid --ThemeColorDark1;
+}
+
+ToolPanelButton:checked:pressed {
+    background-color: --ThemeColorDark2;
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid --ThemeColorDark2;
+}
+
+ToolPanelButton:disabled {
+    background-color: transparent;
+    color: rgba(0, 0, 0, 0.36);
+}
+
+ToolPanelButton:checked:disabled {
+    background-color: rgba(0, 0, 0, 0.05);
+    color: rgba(0, 0, 0, 0.43);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* More Tools Button */
+MoreToolsButton {
+    background-color: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 8px;
+    margin: 2px;
+}
+
+MoreToolsButton:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+}
+
+MoreToolsButton:pressed {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Vertical Tool Panel */
+VerticalToolPanel {
+    background-color: rgba(252, 252, 252, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    padding: 4px;
+}
