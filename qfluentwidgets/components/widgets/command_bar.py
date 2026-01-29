@@ -1,8 +1,9 @@
 # coding:utf-8
 from typing import Iterable, List, Tuple, Union
+from enum import Enum
 
 from PySide6.QtCore import Qt, QSize, QRectF, QRect, QPoint, QEvent
-from PySide6.QtGui import QAction, QPainter, QColor, QFont, QHoverEvent, QPainterPath
+from PySide6.QtGui import QAction, QPainter, QColor, QFont, QHoverEvent, QPainterPath, QMouseEvent, QPen
 from PySide6.QtWidgets import QLayoutItem, QWidget, QFrame, QHBoxLayout, QApplication
 
 from ...common.font import setFont
@@ -162,13 +163,38 @@ class CommandSeparator(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setFixedSize(9, 34)
+        self._orientation = Qt.Horizontal
+        self._updateSize()
+
+    def setOrientation(self, orientation: Qt.Orientation):
+        """ Set separator orientation """
+        if self._orientation == orientation:
+            return
+        
+        self._orientation = orientation
+        self._updateSize()
+        self.update()
+
+    def orientation(self):
+        """ Get separator orientation """
+        return self._orientation
+
+    def _updateSize(self):
+        """ Update size based on orientation """
+        if self._orientation == Qt.Horizontal:
+            self.setFixedSize(9, 34)
+        else:
+            self.setFixedSize(34, 9)
 
     def paintEvent(self, e):
         painter = QPainter(self)
         painter.setPen(QColor(255, 255, 255, 21)
                        if isDarkTheme() else QColor(0, 0, 0, 15))
-        painter.drawLine(5, 2, 5, self.height() - 2)
+        
+        if self._orientation == Qt.Horizontal:
+            painter.drawLine(5, 2, 5, self.height() - 2)
+        else:
+            painter.drawLine(2, 5, self.width() - 2, 5)
 
 
 class CommandMenu(RoundMenu):
@@ -188,6 +214,7 @@ class CommandBar(QFrame):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        self._orientation = Qt.Horizontal
         self._widgets = []  # type: List[QWidget]
         self._hiddenWidgets = []  # type: List[QWidget]
         self._hiddenActions = []  # type: List[QAction]
@@ -204,6 +231,43 @@ class CommandBar(QFrame):
 
         setFont(self, 12)
         self.setAttribute(Qt.WA_TranslucentBackground)
+
+    def setOrientation(self, orientation: Qt.Orientation):
+        """ Set command bar orientation """
+        if self._orientation == orientation:
+            return
+        
+        self._orientation = orientation
+        
+        # Update separators orientation
+        for widget in self._widgets:
+            if isinstance(widget, CommandSeparator):
+                widget.setOrientation(orientation)
+        
+        # Update fixed size based on orientation - 考虑拖动区域
+        if self._widgets:
+            if orientation == Qt.Horizontal:
+                # 竖直拖动区域高度转为水平时不需要考虑
+                height = max(w.height() for w in self._widgets)
+                # 如果有拖动区域，确保高度足够容纳拖动区域
+                if hasattr(self, '_dragHandleRect') and self._dragHandleRect.height() > 8:
+                    height = max(height, self._dragHandleRect.height())
+                self.setFixedHeight(height)
+                self.setMaximumWidth(16777215)  # Reset width constraint
+            else:
+                # 水平拖动区域宽度转为竖直时不需要考虑  
+                width = max(w.width() for w in self._widgets)
+                # 如果有拖动区域，确保宽度足够容纳拖动区域
+                if hasattr(self, '_dragHandleRect') and self._dragHandleRect.width() > 8:
+                    width = max(width, self._dragHandleRect.width())
+                self.setFixedWidth(width)
+                self.setMaximumHeight(16777215)  # Reset height constraint
+        
+        self.updateGeometry()
+
+    def orientation(self):
+        """ Get command bar orientation """
+        return self._orientation
 
     def setSpaing(self, spacing: int):
         if spacing == self._spacing:
@@ -263,7 +327,9 @@ class CommandBar(QFrame):
         self.insertSeparator(-1)
 
     def insertSeparator(self, index: int):
-        self._insertWidgetToLayout(index, CommandSeparator(self))
+        separator = CommandSeparator(self)
+        separator.setOrientation(self._orientation)
+        self._insertWidgetToLayout(index, separator)
 
     def addWidget(self, widget: QWidget):
         """ add widget to command bar """
@@ -353,7 +419,12 @@ class CommandBar(QFrame):
         else:
             self._widgets.insert(index, widget)
 
-        self.setFixedHeight(max(w.height() for w in self._widgets))
+        # Set fixed size based on orientation
+        if self._orientation == Qt.Horizontal:
+            self.setFixedHeight(max(w.height() for w in self._widgets))
+        else:
+            self.setFixedWidth(max(w.width() for w in self._widgets))
+        
         self.updateGeometry()
 
     def minimumSizeHint(self) -> QSize:
@@ -364,18 +435,43 @@ class CommandBar(QFrame):
         self.moreButton.hide()
 
         visibles = self._visibleWidgets()
-        x = self.contentsMargins().left()
-        h = self.height()
+        
+        if self._orientation == Qt.Horizontal:
+            # Horizontal layout - 考虑拖动区域偏移
+            x = self.contentsMargins().left()
+            # 如果是 MovableCommandBar 且有拖动区域，增加偏移
+            if hasattr(self, '_dragHandleRect') and self._dragHandleRect.width() > 8:
+                x += self._dragHandleRect.width()
+            
+            h = self.height()
 
-        for widget in visibles:
-            widget.show()
-            widget.move(x, (h - widget.height()) // 2)
-            x += (widget.width() + self.spacing())
+            for widget in visibles:
+                widget.show()
+                widget.move(x, (h - widget.height()) // 2)
+                x += (widget.width() + self.spacing())
 
-        # show more actions button
-        if self._hiddenActions or len(visibles) < len(self._widgets):
-            self.moreButton.show()
-            self.moreButton.move(x, (h - self.moreButton.height()) // 2)
+            # show more actions button
+            if self._hiddenActions or len(visibles) < len(self._widgets):
+                self.moreButton.show()
+                self.moreButton.move(x, (h - self.moreButton.height()) // 2)
+        else:
+            # Vertical layout - 考虑拖动区域偏移
+            y = self.contentsMargins().top()
+            # 如果是 MovableCommandBar 且有拖动区域，增加偏移
+            if hasattr(self, '_dragHandleRect') and self._dragHandleRect.height() > 8:
+                y += self._dragHandleRect.height()
+            
+            w = self.width()
+
+            for widget in visibles:
+                widget.show()
+                widget.move((w - widget.width()) // 2, y)
+                y += (widget.height() + self.spacing())
+
+            # show more actions button
+            if self._hiddenActions or len(visibles) < len(self._widgets):
+                self.moreButton.show()
+                self.moreButton.move((w - self.moreButton.width()) // 2, y)
 
         for widget in self._widgets[len(visibles):]:
             widget.hide()
@@ -384,29 +480,75 @@ class CommandBar(QFrame):
     def _visibleWidgets(self) -> List[QWidget]:
         """ return the visible widgets in layout """
         # have enough spacing to show all widgets
-        if self.suitableWidth() <= self.width():
-            return self._widgets
+        if self._orientation == Qt.Horizontal:
+            if self.suitableWidth() <= self.width():
+                return self._widgets
 
-        w = self.moreButton.width()
-        for index, widget in enumerate(self._widgets):
-            w += widget.width()
-            if index > 0:
-                w += self.spacing()
+            w = self.moreButton.width()
+            # 如果是 MovableCommandBar 且有拖动区域，增加拖动区域宽度
+            if hasattr(self, '_dragHandleRect') and self._dragHandleRect.width() > 8:
+                w += self._dragHandleRect.width()
+            
+            for index, widget in enumerate(self._widgets):
+                w += widget.width()
+                if index > 0:
+                    w += self.spacing()
 
-            if w > self.width():
-                break
+                if w > self.width():
+                    break
 
-        return self._widgets[:index]
+            return self._widgets[:index]
+        else:
+            # Vertical orientation
+            if self.suitableHeight() <= self.height():
+                return self._widgets
+
+            h = self.moreButton.height()
+            # 如果是 MovableCommandBar 且有拖动区域，增加拖动区域高度
+            if hasattr(self, '_dragHandleRect') and self._dragHandleRect.height() > 8:
+                h += self._dragHandleRect.height()
+            
+            for index, widget in enumerate(self._widgets):
+                h += widget.height()
+                if index > 0:
+                    h += self.spacing()
+
+                if h > self.height():
+                    break
+
+            return self._widgets[:index]
 
     def suitableWidth(self):
         widths = [w.width() for w in self._widgets]
         if self._hiddenActions:
             widths.append(self.moreButton.width())
+        
+        # 如果是 MovableCommandBar 且有拖动区域，增加拖动区域宽度
+        dragHandleWidth = 0
+        if hasattr(self, '_dragHandleRect') and self._dragHandleRect.width() > 8:
+            dragHandleWidth = self._dragHandleRect.width()
 
-        return sum(widths) + self.spacing() * max(len(widths) - 1, 0)
+        return dragHandleWidth + sum(widths) + self.spacing() * max(len(widths) - 1, 0)
+
+    def suitableHeight(self):
+        """ Calculate suitable height for vertical orientation """
+        heights = [w.height() for w in self._widgets]
+        if self._hiddenActions:
+            heights.append(self.moreButton.height())
+        
+        # 如果是 MovableCommandBar 且有拖动区域，增加拖动区域高度
+        dragHandleHeight = 0
+        if hasattr(self, '_dragHandleRect') and self._dragHandleRect.height() > 8:
+            dragHandleHeight = self._dragHandleRect.height()
+
+        return dragHandleHeight + sum(heights) + self.spacing() * max(len(heights) - 1, 0)
 
     def resizeToSuitableWidth(self):
         self.setFixedWidth(self.suitableWidth())
+
+    def resizeToSuitableHeight(self):
+        """ Resize to suitable height for vertical orientation """
+        self.setFixedHeight(self.suitableHeight())
 
     def setFont(self, font: QFont):
         super().setFont(font)
@@ -440,12 +582,18 @@ class CommandBar(QFrame):
         menu = CommandMenu(self)
         menu.addActions(actions)
 
-        x = -menu.width() + menu.layout().contentsMargins().right() + \
-            self.moreButton.width() + 18
-        if self._menuAnimation == MenuAnimationType.DROP_DOWN:
-            y = self.moreButton.height()
+        if self._orientation == Qt.Horizontal:
+            x = -menu.width() + menu.layout().contentsMargins().right() + \
+                self.moreButton.width() + 18
+            if self._menuAnimation == MenuAnimationType.DROP_DOWN:
+                y = self.moreButton.height()
+            else:
+                y = -5
         else:
-            y = -5
+            # Vertical orientation - show menu to the right
+            x = self.moreButton.width()
+            y = -menu.height() + menu.layout().contentsMargins().bottom() + \
+                self.moreButton.height() + 18
 
         pos = self.moreButton.mapToGlobal(QPoint(x, y))
         menu.exec(pos, aniType=self._menuAnimation)
@@ -634,3 +782,309 @@ class CommandBarView(FlyoutViewBase):
         painter.setPen(
             QColor(56, 56, 56) if isDarkTheme() else QColor(233, 233, 233))
         painter.drawPath(path.simplified())
+
+
+class DockPosition(Enum):
+    """ Dock position enumeration """
+    TOP = Qt.TopDockWidgetArea
+    BOTTOM = Qt.BottomDockWidgetArea
+    LEFT = Qt.LeftDockWidgetArea
+    RIGHT = Qt.RightDockWidgetArea
+
+
+class VerticalCommandBar(CommandBar):
+    """ Vertical command bar """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setOrientation(Qt.Vertical)
+
+
+class ResponsiveCommandBar(CommandBar):
+    """ Responsive command bar """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._isResponsive = True
+
+    def setResponsive(self, enabled: bool):
+        """ Set responsive mode """
+        self._isResponsive = enabled
+        self.updateGeometry()
+
+    def isResponsive(self):
+        """ Get responsive mode """
+        return self._isResponsive
+
+    def _visibleWidgets(self) -> List[QWidget]:
+        """ return the visible widgets in layout """
+        if not self._isResponsive:
+            return self._widgets
+        
+        return super()._visibleWidgets()
+
+
+class MovableCommandBar(CommandBar):
+    """ Movable command bar with drag and dock functionality """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._dockPosition = DockPosition.TOP
+        self._dragStartPos = QPoint()
+        self._isDragging = False
+        self._dragHandleRect = QRect()
+        self._isResponsive = True
+        self._isFloating = False  # 新增：是否为自由浮动状态
+        self._pendingOrientation = None  # 新增：待切换的方向
+        
+        self.setMouseTracking(True)
+        self._updateDragHandle()
+        
+        # 确保初始时有正确的最小尺寸
+        self.setMinimumSize(100, 40)
+
+    def setResponsive(self, enabled: bool):
+        """ Set responsive mode """
+        self._isResponsive = enabled
+        self.updateGeometry()
+
+    def isResponsive(self):
+        """ Get responsive mode """
+        return self._isResponsive
+
+    def _visibleWidgets(self) -> List[QWidget]:
+        """ return the visible widgets in layout """
+        if not self._isResponsive:
+            return self._widgets
+        
+        return super()._visibleWidgets()
+
+    def setDockPosition(self, position: DockPosition, force=False):
+        """ Set dock position """
+        if self._dockPosition == position and not force:
+            return
+        
+        oldOrientation = self.orientation()
+        
+        # 先切换方向，再设置停靠位置
+        if position in [DockPosition.LEFT, DockPosition.RIGHT]:
+            self._pendingOrientation = Qt.Vertical
+        else:
+            self._pendingOrientation = Qt.Horizontal
+        
+        # 应用方向切换
+        if self._pendingOrientation != oldOrientation:
+            self.setOrientation(self._pendingOrientation)
+            # 强制更新几何布局
+            self.updateGeometry()
+        
+        self._dockPosition = position
+        self._isFloating = False
+        self._updateDragHandle()
+        
+        # 根据停靠位置调整尺寸
+        if position in [DockPosition.LEFT, DockPosition.RIGHT]:
+            # 竖直停靠时，调整高度
+            self.resizeToSuitableHeight()
+            # 重置宽度约束
+            self.setMaximumWidth(16777215)
+        else:
+            # 水平停靠时，调整宽度
+            self.resizeToSuitableWidth()
+            # 重置高度约束
+            self.setMaximumHeight(16777215)
+
+    def dockPosition(self):
+        """ Get dock position """
+        return self._dockPosition
+
+    def _updateDragHandle(self):
+        """ Update drag handle rectangle - 增加拖动区域 """
+        if self.orientation() == Qt.Horizontal:
+            # 水平时，在左侧增加拖动区域
+            self._dragHandleRect = QRect(0, 0, 20, self.height())
+        else:
+            # 竖直时，在上方增加拖动区域
+            self._dragHandleRect = QRect(0, 0, self.width(), 20)
+
+    def resizeEvent(self, e):
+        super().resizeEvent(e)
+        self._updateDragHandle()
+
+    def mousePressEvent(self, event: QMouseEvent):
+        """ Handle mouse press for dragging """
+        if event.button() == Qt.LeftButton and self._dragHandleRect.contains(event.pos()):
+            self._isDragging = True
+            self._dragStartPos = event.globalPos() - self.pos()
+            event.accept()
+        else:
+            super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event: QMouseEvent):
+        """ Handle mouse move for dragging """
+        if self._isDragging:
+            # Update cursor
+            self.setCursor(Qt.ClosedHandCursor)
+            
+            # Move the command bar
+            newPos = event.globalPos() - self._dragStartPos
+            self.move(newPos)
+            
+            # Detect dock position based on position relative to parent
+            if self.parent():
+                parentRect = self.parent().rect()
+                localPos = self.parent().mapFromGlobal(event.globalPos())
+                
+                # 增加停靠阈值，更容易触发停靠
+                dockThreshold = 80
+                
+                # Determine which edge is closest
+                distances = {
+                    DockPosition.TOP: localPos.y(),
+                    DockPosition.BOTTOM: parentRect.height() - localPos.y(),
+                    DockPosition.LEFT: localPos.x(),
+                    DockPosition.RIGHT: parentRect.width() - localPos.x()
+                }
+                
+                # Find closest edge
+                closest = min(distances.items(), key=lambda x: x[1])
+                if closest[1] < dockThreshold:
+                    # 预览停靠位置，但不立即切换
+                    self._pendingDockPosition = closest[0]
+                else:
+                    # 远离边缘时设为浮动状态
+                    self._pendingDockPosition = None
+            
+            event.accept()
+        elif self._dragHandleRect.contains(event.pos()):
+            self.setCursor(Qt.OpenHandCursor)
+        else:
+            self.setCursor(Qt.ArrowCursor)
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        """ Handle mouse release after dragging """
+        if event.button() == Qt.LeftButton and self._isDragging:
+            self._isDragging = False
+            self.setCursor(Qt.ArrowCursor)
+            
+            # 检查是否需要停靠
+            if hasattr(self, '_pendingDockPosition') and self._pendingDockPosition:
+                # 执行停靠
+                self.setDockPosition(self._pendingDockPosition)
+                
+                # Snap to final position based on dock position
+                if self.parent():
+                    parentRect = self.parent().rect()
+                    
+                    if self._dockPosition == DockPosition.TOP:
+                        self.move(0, 0)
+                    elif self._dockPosition == DockPosition.BOTTOM:
+                        self.move(0, parentRect.height() - self.height())
+                    elif self._dockPosition == DockPosition.LEFT:
+                        self.move(0, 0)
+                    elif self._dockPosition == DockPosition.RIGHT:
+                        self.move(parentRect.width() - self.width(), 0)
+                
+                # 停靠后再次强制更新布局
+                self.updateGeometry()
+            else:
+                # 自由浮动状态
+                self._isFloating = True
+            
+            event.accept()
+        else:
+            super().mouseReleaseEvent(event)
+
+    def paintEvent(self, e):
+        """ Paint with drag handle indicator - Fluent 2 设计风格 """
+        super().paintEvent(e)
+        
+        painter = QPainter(self)
+        painter.setRenderHints(QPainter.Antialiasing)
+        
+        # Fluent 2 设计风格的拖动区域
+        if self.orientation() == Qt.Horizontal:
+            # 水平布局 - 左侧拖动区域
+            handleWidth = 20
+            handleRect = QRect(2, 4, handleWidth - 4, self.height() - 8)
+            
+            # 背景渐变
+            isDark = isDarkTheme()
+            if isDark:
+                # 暗色主题：微妙的半透明背景
+                bgColor = QColor(255, 255, 255, 8)
+                borderColor = QColor(255, 255, 255, 20)
+                dotColor = QColor(255, 255, 255, 120)
+            else:
+                # 亮色主题：微妙的半透明背景
+                bgColor = QColor(0, 0, 0, 6)
+                borderColor = QColor(0, 0, 0, 15)
+                dotColor = QColor(0, 0, 0, 100)
+            
+            # 绘制背景
+            painter.fillRect(handleRect, bgColor)
+            
+            # 绘制边框（仅在悬停或拖动时）
+            if self._isDragging or self._dragHandleRect.contains(self.mapFromGlobal(self.cursor().pos())):
+                painter.setPen(QPen(borderColor, 1))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawRoundedRect(handleRect, 3, 3)
+            
+            # 绘制 Fluent 2 风格的拖动点（更现代的点状设计）
+            painter.setPen(QPen(dotColor, 2, Qt.SolidLine, Qt.RoundCap))
+            
+            # 三行点，每行2个点，更紧凑的布局
+            dotSpacing = 6
+            dotY = self.height() // 2 - 6
+            
+            for row in range(3):
+                y = dotY + row * dotSpacing
+                # 左边的点
+                painter.drawPoint(8, y)
+                # 右边的点
+                painter.drawPoint(14, y)
+                
+        else:
+            # 竖直布局 - 上方拖动区域
+            handleHeight = 20
+            handleRect = QRect(4, 2, self.width() - 8, handleHeight - 4)
+            
+            # 背景渐变
+            isDark = isDarkTheme()
+            if isDark:
+                bgColor = QColor(255, 255, 255, 8)
+                borderColor = QColor(255, 255, 255, 20)
+                dotColor = QColor(255, 255, 255, 120)
+            else:
+                bgColor = QColor(0, 0, 0, 6)
+                borderColor = QColor(0, 0, 0, 15)
+                dotColor = QColor(0, 0, 0, 100)
+            
+            # 绘制背景
+            painter.fillRect(handleRect, bgColor)
+            
+            # 绘制边框（仅在悬停或拖动时）
+            if self._isDragging or self._dragHandleRect.contains(self.mapFromGlobal(self.cursor().pos())):
+                painter.setPen(QPen(borderColor, 1))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawRoundedRect(handleRect, 3, 3)
+            
+            # 绘制 Fluent 2 风格的拖动点（三列点，每列2个点）
+            painter.setPen(QPen(dotColor, 2, Qt.SolidLine, Qt.RoundCap))
+            
+            dotSpacing = 6
+            dotX = self.width() // 2 - 6
+            
+            for col in range(3):
+                x = dotX + col * dotSpacing
+                # 上边的点
+                painter.drawPoint(x, 8)
+                # 下边的点
+                painter.drawPoint(x, 14)
+        
+        # 如果正在拖动且接近停靠边缘，显示预览
+        if self._isDragging and hasattr(self, '_pendingDockPosition') and self._pendingDockPosition:
+            # 注释掉在父容器绘制预览的功能，避免绘制警告
+            # 这种预览应该通过其他方式实现，比如父容件的paintEvent
+            pass

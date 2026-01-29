@@ -9,7 +9,8 @@ from .card_widget import CardWidget, ElevatedCardWidget, SimpleCardWidget, Heade
 from .check_box import CheckBox
 from .combo_box import ComboBox, EditableComboBox
 from .model_combo_box import ModelComboBox, EditableModelComboBox
-from .command_bar import CommandBar, CommandButton, CommandBarView
+from .command_bar import (CommandBar, CommandButton, CommandBarView, VerticalCommandBar, 
+                          ResponsiveCommandBar, MovableCommandBar, DockPosition)
 from .flip_view import FlipView, HorizontalFlipView, VerticalFlipView, FlipImageDelegate
 from .line_edit import LineEdit, TextEdit, PlainTextEdit, LineEditButton, SearchLineEdit, PasswordLineEdit, TextBrowser
 from .label_line_edit import LabelLineEdit
