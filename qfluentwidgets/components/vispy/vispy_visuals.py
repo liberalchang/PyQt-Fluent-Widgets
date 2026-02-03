@@ -126,13 +126,17 @@ class MarkersEntry(VisualEntry):
     def __init__(self, parent_view, visual_id: str, pos: np.ndarray,
                  colors: Union[str, np.ndarray] = 'white',
                  sizes: Union[float, np.ndarray] = 5.0,
-                 symbol: str = 'o'):
+                 symbol: str = 'o',
+                 edge_color: Union[str, np.ndarray, None] = None,
+                 edge_width: float = 0.0):
         """
         Args:
             pos: 形状 (N, 2) 或 (N, 3)，点坐标
-            colors: 单一颜色或每个点的颜色数组
+            colors: 单一颜色或每个点的颜色数组（填充颜色）
             sizes: 统一大小或每个点的大小
             symbol: 符号类型 ('o', 's', '^', 'd' 等)
+            edge_color: 边缘颜色
+            edge_width: 边缘宽度
         """
         super().__init__(parent_view, visual_id)
         
@@ -143,6 +147,8 @@ class MarkersEntry(VisualEntry):
         self.colors = colors
         self.sizes = sizes
         self.symbol = symbol
+        self.edge_color = edge_color
+        self.edge_width = edge_width
         
         # 大数据量优化
         if len(pos) > 500000 and symbol == 'disc':
@@ -153,7 +159,8 @@ class MarkersEntry(VisualEntry):
             face_color=colors,
             size=sizes,
             symbol=symbol,
-            edge_width=0,
+            edge_color=edge_color,
+            edge_width=edge_width,
             parent=parent_view.scene
         )
         
@@ -176,8 +183,18 @@ class MarkersEntry(VisualEntry):
             self.colors = kwargs['colors']
         if 'sizes' in kwargs:
             self.sizes = kwargs['sizes']
+        if 'edge_color' in kwargs:
+            self.edge_color = kwargs['edge_color']
+        if 'edge_width' in kwargs:
+            self.edge_width = kwargs['edge_width']
             
-        self.visual.set_data(pos=self.pos, face_color=self.colors, size=self.sizes)
+        self.visual.set_data(
+            pos=self.pos, 
+            face_color=self.colors, 
+            size=self.sizes,
+            edge_color=self.edge_color,
+            edge_width=self.edge_width
+        )
         
     def destroy(self) -> None:
         if self.visual:

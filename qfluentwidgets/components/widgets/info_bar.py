@@ -32,7 +32,7 @@ class InfoBarIcon(FluentIconBase, Enum):
         else:
             color = theme.value.lower()
 
-        return f':/qfluentwidgets/images/info_bar/{self.value}_{color}.svg'
+        return f':/icon/images/info_bar/{self.value}_{color}.svg'
 
 
 class InfoBarPosition(Enum):

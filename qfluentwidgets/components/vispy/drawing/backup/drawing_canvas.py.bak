@@ -1,0 +1,658 @@
+# coding:utf-8
+"""
+交互式绘图Canvas模块
+
+扩展VispyCanvas2D，集成所有管理器，提供完整的交互式绘图功能。
+"""
+import numpy as np
+from typing import Optional, Dict, List
+
+from ..vispy_canvas import VispyCanvas2D, VISPY_AVAILABLE
+from ..vispy_visuals import LineEntry, MarkersEntry, ImageEntry
+from .coordinate_system import CoordinateSystem
+from .layer_manager import LayerManager, Primitive
+
+try:
+    from vispy.scene.cameras import PanZoomCamera
+except ImportError:
+    PanZoomCamera = None
+
+from .selection_manager import SelectionManager
+from .interaction_manager import InteractionManager, InteractionMode
+from .drawing_visuals import (
+    BezierCurveEntry, ArcEntry, StyledPolygonEntry,
+    StyledRectangleEntry, StyledEllipseEntry
+)
+from .data_models import (
+    PrimitiveData, PointData, LineData, BezierData, ArcData, CircleData,
+    RectangleData, PolygonData, MarkersData, ImageData, StyleData
+)
+
+
+class InteractiveDrawingCanvas(VispyCanvas2D):
+    """交互式绘图Canvas类
+    
+    扩展VispyCanvas2D，添加交互式绘图特性：
+    - 集成所有管理器
+    - 处理鼠标事件
+    - 管理预览图元
+    - 提供图元CRUD接口
+    """
+    
+    def __init__(self):
+        """初始化交互式绘图Canvas"""
+        super().__init__()
+        
+        if not VISPY_AVAILABLE:
+            return
+            
+        # 创建管理器
+        self.coordinate_system = CoordinateSystem(self.view, self.canvas)
+        self.layer_manager = LayerManager()
+        self.selection_manager = SelectionManager(
+            self.layer_manager,
+            self.coordinate_system,
+            self.view
+        )
+        self.interaction_manager = InteractionManager(
+            self.coordinate_system,
+            self.selection_manager
+        )
+        
+        # 连接信号
+        self.interaction_manager.primitiveCreated.connect(self._onPrimitiveCreated)
+        self.interaction_manager.primitiveMoved.connect(self._onPrimitiveMoved)
+        
+        # 启用鼠标追踪，确保移动事件在未按键时也能触发（用于预览）
+        if self.native_widget:
+            self.native_widget.setMouseTracking(True)
+            
+        # 绑定Vispy事件预览图元
+        self._preview_visual: Optional[object] = None
+        
+        # 绑定鼠标事件
+        # 优先绑定到 view 的事件，并确保在相机之前处理
+        if self.view:
+            # Vispy默认将新handler插入到列表开头(prepend)
+            # 所以直接连接即可确保我们的handler排在相机之前
+            self.view.events.mouse_press.connect(self._onMousePress)
+            self.view.events.mouse_move.connect(self._onMouseMove)
+            self.view.events.mouse_release.connect(self._onMouseRelease)
+
+        
+        if self.canvas:
+            # 双击事件保留在 canvas 上（view 可能不支持）
+            self.canvas.events.mouse_double_click.connect(self._onMouseDoubleClick)
+            
+            # 确保 ESC 键处理不冲突
+            # 不连接Vispy键盘事件，避免与Qt键盘事件冲突
+            # ESC键处理由Qt层面的drawing_widget.py负责
+            
+    # ==================== 图元CRUD接口 ====================
+    
+    def addPrimitive(self, data: PrimitiveData, layer_id: str = None) -> str:
+        """添加图元
+        
+        Args:
+            data: 图元数据
+            layer_id: 图层ID，如果为None则添加到默认图层
+            
+        Returns:
+            图元ID
+        """
+        # 创建visual
+        visual = self._createVisual(data)
+        if visual is None:
+            raise ValueError(f"无法创建visual: {data.type_name}")
+            
+        # 创建Primitive对象
+        primitive = Primitive(
+            id=data.id,
+            data=data,
+            visual=visual,
+            type_name=data.type_name
+        )
+        
+        # 添加到图层
+        self.layer_manager.addPrimitive(primitive, layer_id)
+        
+        # 更新Canvas
+        if self.canvas:
+            self.canvas.update()
+            
+        return data.id
+        
+    def removePrimitive(self, primitive_id: str) -> bool:
+        """移除图元
+        
+        Args:
+            primitive_id: 图元ID
+            
+        Returns:
+            是否成功移除
+        """
+        primitive = self.layer_manager.removePrimitive(primitive_id)
+        if primitive is None:
+            return False
+            
+        # 销毁visual
+        if primitive.visual:
+            primitive.visual.destroy()
+            
+        # 更新Canvas
+        if self.canvas:
+            self.canvas.update()
+            
+        return True
+        
+    def updatePrimitive(self, primitive_id: str, **kwargs) -> bool:
+        """更新图元数据
+        
+        Args:
+            primitive_id: 图元ID
+            **kwargs: 更新参数
+            
+        Returns:
+            是否成功更新
+        """
+        primitive = self.layer_manager.getPrimitive(primitive_id)
+        if primitive is None:
+            return False
+            
+        # 更新data
+        for key, value in kwargs.items():
+            if hasattr(primitive.data, key):
+                setattr(primitive.data, key, value)
+                
+        # 更新visual
+        if primitive.visual:
+            primitive.visual.update_data(**kwargs)
+            
+        # 更新Canvas
+        if self.canvas:
+            self.canvas.update()
+            
+        return True
+        
+    def getPrimitive(self, primitive_id: str) -> Optional[Primitive]:
+        """获取图元
+        
+        Args:
+            primitive_id: 图元ID
+            
+        Returns:
+            Primitive对象，如果不存在返回None
+        """
+        return self.layer_manager.getPrimitive(primitive_id)
+        
+    def getAllPrimitives(self) -> List[Primitive]:
+        """获取所有图元
+        
+        Returns:
+            Primitive列表
+        """
+        return self.layer_manager.getAllPrimitives()
+        
+    def clearAll(self) -> None:
+        """清空所有图元"""
+        # 销毁所有visual
+        for primitive in self.layer_manager.getAllPrimitives():
+            if primitive.visual:
+                primitive.visual.destroy()
+                
+        # 清空图层管理器
+        self.layer_manager.clear()
+        
+        # 清空选择
+        self.selection_manager.clearSelection()
+        
+        # 更新Canvas
+        if self.canvas:
+            self.canvas.update()
+            
+    # ==================== Visual创建 ====================
+    
+    def _createVisual(self, data: PrimitiveData):
+        """根据数据创建Visual对象
+        
+        Args:
+            data: 图元数据
+            
+        Returns:
+            Visual对象
+        """
+        if not VISPY_AVAILABLE or not self.view:
+            return None
+            
+        style = data.style
+        visual_id = self._generate_visual_id()
+        
+        try:
+            if isinstance(data, PointData):
+                return MarkersEntry(
+                    self.view, visual_id,
+                    pos=np.array([[data.x, data.y]], dtype=np.float32),
+                    colors=style.lineColor,
+                    sizes=[data.radius * 2],  # MarkersEntry使用直径
+                    symbol='disc'
+                )
+                
+            elif isinstance(data, LineData):
+                return LineEntry(
+                    self.view, visual_id,
+                    pos=data.points,
+                    color=style.lineColor,
+                    width=style.lineWidth
+                )
+                
+            elif isinstance(data, BezierData):
+                return BezierCurveEntry(
+                    self.view, visual_id,
+                    control_points=data.control_points,
+                    degree=data.degree,
+                    color=style.lineColor,
+                    width=style.lineWidth
+                )
+                
+            elif isinstance(data, ArcData):
+                return ArcEntry(
+                    self.view, visual_id,
+                    center=data.center,
+                    radius=data.radius,
+                    start_angle=data.start_angle,
+                    end_angle=data.end_angle,
+                    color=style.lineColor,
+                    width=style.lineWidth
+                )
+                
+            elif isinstance(data, CircleData):
+                return StyledEllipseEntry(
+                    self.view, visual_id,
+                    center=data.center,
+                    radius=data.radius,
+                    fill_color=style.fillColor,
+                    border_color=style.borderColor,
+                    border_width=style.borderWidth,
+                    filled=style.filled,
+                    show_border=style.showBorder
+                )
+                
+            elif isinstance(data, RectangleData):
+                return StyledRectangleEntry(
+                    self.view, visual_id,
+                    pos=data.pos,
+                    size=data.size,
+                    fill_color=style.fillColor,
+                    border_color=style.borderColor,
+                    border_width=style.borderWidth,
+                    filled=style.filled,
+                    show_border=style.showBorder
+                )
+                
+            elif isinstance(data, PolygonData):
+                return StyledPolygonEntry(
+                    self.view, visual_id,
+                    vertices=data.vertices,
+                    fill_color=style.fillColor,
+                    border_color=style.borderColor,
+                    border_width=style.borderWidth,
+                    filled=style.filled,
+                    show_border=style.showBorder
+                )
+                
+            elif isinstance(data, MarkersData):
+                return MarkersEntry(
+                    self.view, visual_id,
+                    pos=data.positions,
+                    colors=style.lineColor,
+                    sizes=data.sizes,
+                    symbol=data.symbol
+                )
+                
+            elif isinstance(data, ImageData):
+                if data.data is not None:
+                    return ImageEntry(
+                        self.view, visual_id,
+                        data=data.data,
+                        pos=data.pos,
+                        interpolation=data.interpolation
+                    )
+                    
+        except Exception as e:
+            print(f"创建Visual失败: {e}")
+            
+        return None
+        
+    # ==================== 鼠标事件处理 ====================
+    
+    def _onMousePress(self, event):
+        """鼠标按下事件"""
+        if not self.canvas:
+            return
+            
+        # 检查event.pos是否有效
+        if event.pos is None:
+            return
+            
+        # 获取按钮类型
+        button_map = {1: 'left', 2: 'right', 3: 'middle'}
+        button = button_map.get(event.button, 'left')
+        
+        # 获取修饰键
+        modifiers = set()
+        event_modifiers = getattr(event, 'modifiers', None)
+        if event_modifiers:
+            if hasattr(event_modifiers, '__iter__'):
+                for mod in event_modifiers:
+                    if hasattr(mod, 'name'):
+                        modifiers.add(mod.name.lower())
+                        
+        # 处理事件
+        result = self.interaction_manager.handleMousePress(
+            event.pos[0], event.pos[1],
+            button=button,
+            modifiers=modifiers
+        )
+        
+        # 更新预览
+        self._updatePreview()
+        
+        # 更新Canvas
+        if result.get('handled'):
+            event.handled = True
+            if self.canvas:
+                self.canvas.update()
+                
+    def _onMouseMove(self, event):
+        """鼠标移动事件"""
+        if not self.canvas:
+            return
+            
+        # 检查event.pos是否有效
+        if event.pos is None:
+            return
+            
+        # 处理事件
+        result = self.interaction_manager.handleMouseMove(
+            event.pos[0], event.pos[1]
+        )
+        
+        # 更新预览
+        self._updatePreview()
+        
+        # 更新Canvas（如果有变化）
+        if result.get('handled') or result.get('moving') or result.get('dragging'):
+            event.handled = True
+            if self.canvas:
+                self.canvas.update()
+                
+    def _onMouseRelease(self, event):
+        """鼠标释放事件"""
+        if not self.canvas:
+            return
+            
+        # 检查event.pos是否有效
+        if event.pos is None:
+            return
+            
+        button_map = {1: 'left', 2: 'right', 3: 'middle'}
+        button = button_map.get(event.button, 'left')
+        
+        # 处理事件
+        result = self.interaction_manager.handleMouseRelease(
+            event.pos[0], event.pos[1],
+            button=button
+        )
+        
+        # 清除预览
+        self._clearPreview()
+        
+        # 更新Canvas
+        if result.get('handled'):
+            event.handled = True
+            if self.canvas:
+                self.canvas.update()
+                
+    def _onMouseDoubleClick(self, event):
+        """鼠标双击事件"""
+        if not self.canvas:
+            return
+            
+        # 处理事件
+        result = self.interaction_manager.handleDoubleClick(
+            event.pos[0], event.pos[1]
+        )
+        
+        # 清除预览
+        self._clearPreview()
+        
+        # 更新Canvas
+        if result.get('handled'):
+            if self.canvas:
+                self.canvas.update()
+                
+    # ==================== 预览管理 ====================
+    
+    def _updatePreview(self) -> None:
+        """更新预览图元"""
+        if not VISPY_AVAILABLE:
+            return
+            
+        # 清除旧预览
+        self._clearPreview()
+        
+        # 获取预览数据
+        preview_data = self.interaction_manager.getCurrentPreview()
+        if preview_data is None:
+            return
+            
+        # 创建预览visual
+        try:
+            preview_type = preview_data.get('type')
+            
+            if preview_type == 'line':
+                points = np.array(preview_data['points'], dtype=np.float32)
+                from vispy.scene import visuals
+                self._preview_visual = visuals.Line(
+                    pos=points,
+                    color=(0.5, 0.5, 0.5, 0.6),
+                    width=1.0,
+                    parent=self.view.scene
+                )
+                
+            elif preview_type == 'rectangle':
+                from vispy.scene import visuals
+                x, y = preview_data['x1'], preview_data['y1']
+                w, h = preview_data['width'], preview_data['height']
+                vertices = np.array([
+                    [x, y], [x + w, y], [x + w, y + h], [x, y + h], [x, y]
+                ], dtype=np.float32)
+                self._preview_visual = visuals.Line(
+                    pos=vertices,
+                    color=(0.5, 0.5, 0.5, 0.6),
+                    width=1.0,
+                    parent=self.view.scene
+                )
+                
+            elif preview_type == 'circle':
+                from vispy.scene import visuals
+                center = preview_data['center']
+                radius = preview_data['radius']
+                self._preview_visual = visuals.Ellipse(
+                    center=center,
+                    radius=(radius, radius),
+                    color=(0.5, 0.5, 0.5, 0.3),
+                    border_color=(0.5, 0.5, 0.5, 0.6),
+                    parent=self.view.scene
+                )
+                
+            elif preview_type == 'box_select':
+                from vispy.scene import visuals
+                x1, y1 = preview_data['x1'], preview_data['y1']
+                x2, y2 = preview_data['x2'], preview_data['y2']
+                vertices = np.array([
+                    [x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1]
+                ], dtype=np.float32)
+                self._preview_visual = visuals.Line(
+                    pos=vertices,
+                    color=(0.3, 0.7, 1.0, 0.8),
+                    width=1.0,
+                    parent=self.view.scene
+                )
+                
+            elif preview_type == 'bezier':
+                points = np.array(preview_data['points'], dtype=np.float32)
+                from vispy.scene import visuals
+                self._preview_visual = visuals.Line(
+                    pos=points,
+                    color=(0.5, 0.5, 0.5, 0.6),
+                    width=1.0,
+                    parent=self.view.scene
+                )
+
+            elif preview_type == 'polygon':
+                points = np.array(preview_data['points'], dtype=np.float32)
+                from vispy.scene import visuals
+                self._preview_visual = visuals.Line(
+                    pos=points,
+                    color=(0.5, 0.5, 0.5, 0.6),
+                    width=1.0,
+                    connect='strip',
+                    parent=self.view.scene
+                )
+            
+            # 确保创建后立即更新Canvas，否则可能不可见
+            if self.canvas:
+                self.canvas.update()
+                
+        except Exception as e:
+            print(f"创建预览失败: {e}")
+            
+    def _clearPreview(self) -> None:
+        """清除预览图元"""
+        if self._preview_visual:
+            try:
+                # 从scene中移除预览图元
+                if hasattr(self, 'view') and self.view and hasattr(self.view, 'scene'):
+                    scene = self.view.scene
+                    if self._preview_visual in scene.children:
+                        # 使用parent属性设置为None来移除
+                        self._preview_visual.parent = None
+                
+                # 强制设置为None
+                self._preview_visual = None
+                
+                # 立即更新scene以确保移除生效
+                if hasattr(self, 'canvas') and self.canvas:
+                    self.canvas.update()
+                    
+            except Exception as e:
+                print(f"清除预览图元失败: {e}")
+                # 如果移除失败，至少设置为None防止引用
+                self._preview_visual = None
+            
+    # ==================== 信号处理 ====================
+    
+    def _onPrimitiveCreated(self, data: PrimitiveData):
+        """处理图元创建信号"""
+        try:
+            self.addPrimitive(data)
+        except Exception as e:
+            print(f"添加图元失败: {e}")
+            
+    def _onPrimitiveMoved(self, primitive_ids: List[str], dx: float, dy: float):
+        """处理图元移动信号"""
+        for primitive_id in primitive_ids:
+            primitive = self.layer_manager.getPrimitive(primitive_id)
+            if primitive is None or primitive.data.locked:
+                continue
+                
+            # 更新数据
+            data = primitive.data
+            if isinstance(data, (LineData, BezierData, PolygonData, MarkersData)):
+                # 有顶点/位置的图元
+                if hasattr(data, 'points'):
+                    data.points = data.points + np.array([dx, dy])
+                elif hasattr(data, 'control_points'):
+                    data.control_points = data.control_points + np.array([dx, dy])
+                elif hasattr(data, 'vertices'):
+                    data.vertices = data.vertices + np.array([dx, dy])
+                elif hasattr(data, 'positions'):
+                    data.positions = data.positions + np.array([dx, dy])
+                    
+            elif isinstance(data, (CircleData, ArcData)):
+                # 有中心点的图元
+                cx, cy = data.center
+                data.center = (cx + dx, cy + dy)
+                
+            elif isinstance(data, RectangleData):
+                # 矩形
+                x, y = data.pos
+                data.pos = (x + dx, y + dy)
+                
+            elif isinstance(data, ImageData):
+                # 图像
+                x, y = data.pos
+                data.pos = (x + dx, y + dy)
+                
+            # 更新visual
+            if primitive.visual:
+                try:
+                    if isinstance(data, (LineData, BezierData, PolygonData, MarkersData)):
+                        if hasattr(data, 'points'):
+                            primitive.visual.update_data(pos=data.points)
+                        elif hasattr(data, 'control_points'):
+                            primitive.visual.update_data(control_points=data.control_points)
+                        elif hasattr(data, 'vertices'):
+                            primitive.visual.update_data(vertices=data.vertices)
+                        elif hasattr(data, 'positions'):
+                            primitive.visual.update_data(pos=data.positions)
+                    elif isinstance(data, (CircleData, ArcData)):
+                        primitive.visual.update_data(center=data.center)
+                    elif isinstance(data, RectangleData):
+                        primitive.visual.update_data(pos=data.pos)
+                    elif isinstance(data, ImageData):
+                        primitive.visual.update_data(pos=data.pos)
+                except Exception as e:
+                    print(f"更新visual失败: {e}")
+                    
+        # 更新高亮
+        self.selection_manager.updateHighlights()
+        
+        # 更新Canvas
+        if self.canvas:
+            self.canvas.update()
+            
+    # ==================== 交互模式 ====================
+    
+    def setInteractionMode(self, mode: InteractionMode) -> None:
+        """设置交互模式
+        
+        Args:
+            mode: 交互模式
+        """
+        self.interaction_manager.setMode(mode)
+        
+    def getInteractionMode(self) -> InteractionMode:
+        """获取当前交互模式
+        
+        Returns:
+            交互模式
+        """
+        return self.interaction_manager.getMode()
+        
+    def setDefaultStyle(self, style: StyleData) -> None:
+        """设置默认样式
+        
+        Args:
+            style: 样式数据
+        """
+        self.interaction_manager.setDefaultStyle(style)
+        
+    def getDefaultStyle(self) -> StyleData:
+        """获取默认样式
+        
+        Returns:
+            样式数据
+        """
+        return self.interaction_manager.getDefaultStyle()

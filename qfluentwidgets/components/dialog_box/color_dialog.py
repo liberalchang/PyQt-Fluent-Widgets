@@ -1,6 +1,6 @@
 # coding:utf-8
 from PySide6.QtCore import Qt, Signal, QPoint, QRegularExpression, QSize
-from PySide6.QtGui import (QBrush, QColor, QPixmap, QPainter,
+from PySide6.QtGui import (QBrush, QColor, QPixmap, QPainter, QLinearGradient,
                            QPen, QIntValidator, QRegularExpressionValidator, QIcon)
 from PySide6.QtWidgets import QApplication, QLabel, QWidget, QPushButton, QPushButton, QFrame, QVBoxLayout
 
@@ -18,8 +18,45 @@ class HuePanel(QWidget):
     def __init__(self, color=QColor(255, 0, 0), parent=None):
         super().__init__(parent=parent)
         self.setFixedSize(256, 256)
-        self.huePixmap = QPixmap(":/qfluentwidgets/images/color_dialog/HuePanel.png")
+        
+        # try to load from resource first
+        self.huePixmap = QPixmap(":/icon/images/color_dialog/HuePanel.png")
+        if self.huePixmap.isNull():
+            self.huePixmap = self._createHuePixmap()
+            
         self.setColor(color)
+
+    def _createHuePixmap(self):
+        pixmap = QPixmap(256, 256)
+        pixmap.fill(Qt.transparent)
+
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing, False)
+
+        # draw hue
+        hueGradient = QLinearGradient(0, 0, 256, 0)
+        hueGradient.setColorAt(0.0, QColor(255, 0, 0))
+        hueGradient.setColorAt(0.166, QColor(255, 255, 0))
+        hueGradient.setColorAt(0.333, QColor(0, 255, 0))
+        hueGradient.setColorAt(0.5, QColor(0, 255, 255))
+        hueGradient.setColorAt(0.666, QColor(0, 0, 255))
+        hueGradient.setColorAt(0.833, QColor(255, 0, 255))
+        hueGradient.setColorAt(1.0, QColor(255, 0, 0))
+
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(QBrush(hueGradient))
+        painter.drawRect(0, 0, 256, 256)
+
+        # draw saturation
+        saturationGradient = QLinearGradient(0, 0, 0, 256)
+        saturationGradient.setColorAt(0.0, QColor(255, 255, 255, 0))
+        saturationGradient.setColorAt(1.0, QColor(255, 255, 255, 255))
+
+        painter.setBrush(QBrush(saturationGradient))
+        painter.drawRect(0, 0, 256, 256)
+
+        painter.end()
+        return pixmap
 
     def mousePressEvent(self, e):
         self.setPickerPosition(e.pos())

@@ -1750,6 +1750,25 @@
     <file>images/check_box/Accept_white.svg</file>
     <file>images/check_box/PartialAccept_black.svg</file>
     <file>images/check_box/PartialAccept_white.svg</file>
+    <!-- 绘图图标 -->
+    <file>images/draw/Circle_black.svg</file>
+    <file>images/draw/Circle_white.svg</file>
+    <file>images/draw/Cursor_black.svg</file>
+    <file>images/draw/Cursor_white.svg</file>
+    <file>images/draw/Curve_black.svg</file>
+    <file>images/draw/Curve_white.svg</file>
+    <file>images/draw/Ellipse_black.svg</file>
+    <file>images/draw/Ellipse_white.svg</file>
+    <file>images/draw/Line_black.svg</file>
+    <file>images/draw/Line_white.svg</file>
+    <file>images/draw/Move_black.svg</file>
+    <file>images/draw/Move_white.svg</file>
+    <file>images/draw/Point_black.svg</file>
+    <file>images/draw/Point_white.svg</file>
+    <file>images/draw/Polygon_black.svg</file>
+    <file>images/draw/Polygon_white.svg</file>
+    <file>images/draw/Rectangle_black.svg</file>
+    <file>images/draw/Rectangle_white.svg</file>
   </qresource>
   <qresource prefix="html">
     <file>html/echarts.html</file>

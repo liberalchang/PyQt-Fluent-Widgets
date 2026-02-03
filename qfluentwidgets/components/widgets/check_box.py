@@ -20,7 +20,7 @@ class CheckBoxIcon(FluentIconBase, Enum):
 
     def path(self, theme=Theme.AUTO):
         c = getIconColor(theme, reverse=True)
-        return f':/qfluentwidgets/images/check_box/{self.value}_{c}.svg'
+        return f':/icon/images/check_box/{self.value}_{c}.svg'
 
 
 class CheckBoxState(Enum):

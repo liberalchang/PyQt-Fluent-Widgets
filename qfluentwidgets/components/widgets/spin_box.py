@@ -22,7 +22,7 @@ class SpinIcon(FluentIconBase, Enum):
     DOWN = "Down"
 
     def path(self, theme=Theme.AUTO):
-        return f':/qfluentwidgets/images/spin_box/{self.value}_{getIconColor(theme)}.svg'
+        return f':/icon/images/spin_box/{self.value}_{getIconColor(theme)}.svg'
 
 
 

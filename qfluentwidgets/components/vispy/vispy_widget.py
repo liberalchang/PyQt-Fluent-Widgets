@@ -21,7 +21,7 @@ from .vispy_visuals import (
     PolygonEntry, ImageEntry, TextEntry, MeshEntry,
     SurfacePlotEntry, VolumeEntry, AxesEntry, GridLinesEntry
 )
-from ...common.style_sheet import isDarkTheme
+from qfluentwidgets.common.style_sheet import isDarkTheme
 
 
 class VispyWidget2D(QWidget):

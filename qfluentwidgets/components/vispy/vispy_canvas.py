@@ -212,24 +212,27 @@ class VispyCanvas2D(VispyCanvasBase):
     - RMB 或滚轮: 缩放视图
     """
     
-    def __init__(self):
-        """初始化 2D 画布"""
+    def __init__(self, grid_size: float = 100.0, grid_spacing: float = 10.0):
+        """初始化 2D 画布
+        
+        Args:
+            grid_size: 网格半径大小（总宽度为 2*grid_size）
+            grid_spacing: 网格间距
+        """
         super().__init__(camera_mode='panzoom')
         
         if not VISPY_AVAILABLE:
             return
         
         # 初始化 2D 网格
-        self._init_grid()
+        self._init_grid(grid_size, grid_spacing)
         
-    def _init_grid(self):
+    def _init_grid(self, size=100.0, spacing=10.0):
         """初始化 2D 网格"""
         if not VISPY_AVAILABLE:
             return
         
         # 创建简单的 2D 网格线
-        size = 100.0
-        spacing = 10.0
         
         # 生成网格线段
         lines = []

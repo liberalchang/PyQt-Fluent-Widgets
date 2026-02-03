@@ -76,7 +76,7 @@ class AcrylicTextureLabel(QLabel):
         self.tintColor = QColor(tintColor)
         self.luminosityColor = QColor(luminosityColor)
         self.noiseOpacity = noiseOpacity
-        self.noiseImage = QImage(':/qfluentwidgets/images/acrylic/noise.png')
+        self.noiseImage = QImage(':/icon/images/acrylic/noise.png')
         self.setAttribute(Qt.WA_TranslucentBackground)
 
     def setTintColor(self, color: QColor):
@@ -170,7 +170,7 @@ class AcrylicBrush:
         self.tintColor = QColor(tintColor)
         self.luminosityColor = QColor(luminosityColor)
         self.noiseOpacity = noiseOpacity
-        self.noiseImage = QImage(':/qfluentwidgets/images/acrylic/noise.png')
+        self.noiseImage = QImage(':/icon/images/acrylic/noise.png')
         self.originalImage = QPixmap()
         self.image = QPixmap()
 

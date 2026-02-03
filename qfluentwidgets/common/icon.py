@@ -716,6 +716,24 @@ class Action(QAction):
         super().setIcon(icon)
 
 
+class DrawIcon(FluentIconBase, Enum):
+    """ 绘图图标枚举类 """
+    
+    # 基础绘图工具
+    CIRCLE = "Circle"
+    CURSOR = "Cursor"
+    CURVE = "Curve"
+    ELLIPSE = "Ellipse"
+    LINE = "Line"
+    MOVE = "Move"
+    POINT = "Point"
+    POLYGON = "Polygon"
+    RECTANGLE = "Rectangle"
+
+    def path(self, theme=Theme.AUTO):
+        return f':/icon/images/draw/{self.value}_{getIconColor(theme)}.svg'
+
+
 class AntDesignIcon(FluentIconBase, Enum):
     """ Ant Design icon """
 

@@ -1,0 +1,775 @@
+# coding:utf-8
+"""
+交互管理器模块
+
+实现模式化的鼠标交互管理：
+- InteractionMode: 交互模式枚举
+- InteractionManager: 交互管理器类
+"""
+from enum import Enum, auto
+from typing import Optional, Tuple, List
+import numpy as np
+import time
+from PySide6.QtCore import QObject, Signal
+
+from .coordinate_system import CoordinateSystem
+from .selection_manager import SelectionManager
+from .data_models import (
+    PrimitiveData, PointData, LineData, BezierData, ArcData, CircleData,
+    RectangleData, PolygonData, MarkersData, StyleData
+)
+
+
+class InteractionMode(Enum):
+    """交互模式枚举"""
+    # 基础模式
+    DEFAULT = auto()            # 默认模式（保持Vispy默认交互）
+    MOVE = auto()               # 移动模式（选择和移动图元）
+    
+    # 绘制模式
+    DRAW_LINE = auto()          # 绘制多段线
+    DRAW_RECTANGLE = auto()     # 绘制矩形
+    DRAW_CIRCLE = auto()        # 绘制圆形
+    DRAW_BEZIER = auto()        # 绘制贝塞尔曲线
+    DRAW_POLYGON = auto()       # 绘制多边形
+    DRAW_POINT = auto()         # 绘制点
+    
+    # 高级模式
+    EDIT_BEZIER = auto()        # 编辑贝塞尔曲线控制点
+
+
+class InteractionManager(QObject):
+    """交互管理器类
+    
+    管理鼠标交互模式和状态，分发事件到对应的处理逻辑。
+    """
+    
+    # 信号
+    primitiveCreated = Signal(PrimitiveData)        # 图元创建完成
+    primitiveMoved = Signal(list, float, float)     # 图元移动 (ids, dx, dy)
+    interactionStateChanged = Signal(dict)          # 交互状态改变
+    
+    def __init__(self, coordinate_system: CoordinateSystem, 
+                 selection_manager: SelectionManager):
+        """初始化交互管理器
+        
+        Args:
+            coordinate_system: 坐标系统
+            selection_manager: 选择管理器
+        """
+        super().__init__()
+        self.coordinate_system = coordinate_system
+        self.selection_manager = selection_manager
+        
+        self._current_mode = InteractionMode.DEFAULT
+        self._default_style = StyleData()           # 默认样式
+        
+        # 交互状态
+        self._is_pressing = False                   # 鼠标是否按下
+        self._start_point: Optional[Tuple[float, float]] = None  # 起始点（世界坐标）
+        self._current_point: Optional[Tuple[float, float]] = None  # 当前点（世界坐标）
+        self._temp_points: List[Tuple[float, float]] = []  # 临时点列表
+        self._move_start_point: Optional[Tuple[float, float]] = None  # 移动起始点
+        self._draw_start_point: Optional[Tuple[float, float]] = None  # 绘制起始点（用于分步绘制）
+        self._press_time = 0.0  # 鼠标按下时间戳
+        
+    def setMode(self, mode: InteractionMode) -> None:
+        """设置交互模式
+        
+        Args:
+            mode: 交互模式
+        """
+        # 切换模式前清理状态
+        self._clearState()
+        self._current_mode = mode
+        
+    def getMode(self) -> InteractionMode:
+        """获取当前交互模式
+        
+        Returns:
+            当前交互模式
+        """
+        return self._current_mode
+        
+    def setDefaultStyle(self, style: StyleData) -> None:
+        """设置默认样式
+        
+        Args:
+            style: 样式数据
+        """
+        self._default_style = style.copy()
+        
+    def getDefaultStyle(self) -> StyleData:
+        """获取默认样式
+        
+        Returns:
+            样式数据副本
+        """
+        return self._default_style.copy()
+        
+    def handleMousePress(self, screen_x: float, screen_y: float, 
+                        button: str = 'left', modifiers: set = None) -> dict:
+        """处理鼠标按下事件
+        
+        Args:
+            screen_x, screen_y: 屏幕坐标
+            button: 按钮类型 ('left', 'right', 'middle')
+            modifiers: 修饰键集合 ('ctrl', 'shift', 'alt')
+            
+        Returns:
+            事件处理结果字典
+        """
+        if modifiers is None:
+            modifiers = set()
+            
+        # 转换为世界坐标
+        world_x, world_y = self.coordinate_system.screenToWorld(screen_x, screen_y)
+        
+        self._is_pressing = True
+        self._press_time = time.time()
+        self._start_point = (world_x, world_y)
+        self._current_point = (world_x, world_y)
+        
+        # 根据模式分发事件
+        if self._current_mode == InteractionMode.DEFAULT:
+            # 默认模式：不处理，让Vispy默认交互生效
+            return {'handled': False}
+        elif self._current_mode == InteractionMode.MOVE:
+            return self._handleMovePress(world_x, world_y)
+        elif self._current_mode in [InteractionMode.DRAW_LINE, InteractionMode.DRAW_POLYGON, 
+                                     InteractionMode.DRAW_BEZIER, InteractionMode.DRAW_POINT]:
+            return self._handleDrawClickPress(world_x, world_y)
+        elif self._current_mode in [InteractionMode.DRAW_RECTANGLE, InteractionMode.DRAW_CIRCLE]:
+            return self._handleDrawDragPress(world_x, world_y)
+        elif self._current_mode == InteractionMode.EDIT_BEZIER:
+            return self._handleBezierEditPress(world_x, world_y)
+            
+        return {'handled': False}
+        
+    def handleMouseMove(self, screen_x: float, screen_y: float) -> dict:
+        """处理鼠标移动事件
+        
+        Args:
+            screen_x, screen_y: 屏幕坐标
+            
+        Returns:
+            事件处理结果字典
+        """
+        world_x, world_y = self.coordinate_system.screenToWorld(screen_x, screen_y)
+        self._current_point = (world_x, world_y)
+        
+        print(f"Move: pressing={self._is_pressing}, mode={self._current_mode}, start={self._draw_start_point}")
+        
+        if not self._is_pressing:
+            # 悬停预览
+            return self._handleHoverMove(world_x, world_y)
+            
+        # 拖拽操作
+        if self._current_mode == InteractionMode.DEFAULT:
+            # 默认模式：不处理，让Vispy默认交互生效
+            return {'handled': False}
+        elif self._current_mode == InteractionMode.MOVE:
+            return self._handleMoveMove(world_x, world_y)
+        elif self._current_mode in [InteractionMode.DRAW_RECTANGLE, InteractionMode.DRAW_CIRCLE]:
+            return self._handleDrawDragMove(world_x, world_y)
+        elif self._current_mode in [InteractionMode.DRAW_LINE, InteractionMode.DRAW_POLYGON, 
+                                     InteractionMode.DRAW_BEZIER]:
+            return self._handleDrawMove(world_x, world_y)
+        elif self._current_mode == InteractionMode.EDIT_BEZIER:
+            return self._handleBezierEditMove(world_x, world_y)
+            
+        return {'handled': False}
+        
+    def handleMouseRelease(self, screen_x: float, screen_y: float, 
+                          button: str = 'left') -> dict:
+        """处理鼠标释放事件
+        
+        Args:
+            screen_x, screen_y: 屏幕坐标
+            button: 按钮类型
+            
+        Returns:
+            事件处理结果字典
+        """
+        world_x, world_y = self.coordinate_system.screenToWorld(screen_x, screen_y)
+        
+        result = {'handled': False}
+        
+        # 根据模式分发事件
+        if self._current_mode == InteractionMode.DEFAULT:
+            # 默认模式：不处理，让Vispy默认交互生效
+            result = {'handled': False}
+        elif self._current_mode == InteractionMode.MOVE:
+            result = self._handleMoveRelease(world_x, world_y)
+        elif self._current_mode in [InteractionMode.DRAW_RECTANGLE, InteractionMode.DRAW_CIRCLE]:
+            result = self._handleDrawDragRelease(world_x, world_y)
+        elif self._current_mode in [InteractionMode.DRAW_LINE, InteractionMode.DRAW_POLYGON, 
+                                     InteractionMode.DRAW_BEZIER, InteractionMode.DRAW_POINT]:
+            result = self._handleDrawRelease(world_x, world_y)
+        elif self._current_mode == InteractionMode.EDIT_BEZIER:
+            result = self._handleBezierEditRelease(world_x, world_y)
+        else:
+            result = {'handled': False}
+            
+        self._is_pressing = False
+        return result
+        
+    def handleDoubleClick(self, screen_x: float, screen_y: float) -> dict:
+        """处理鼠标双击事件
+        
+        Args:
+            screen_x, screen_y: 屏幕坐标
+            
+        Returns:
+            事件处理结果字典
+        """
+        world_x, world_y = self.coordinate_system.screenToWorld(screen_x, screen_y)
+        
+        # 某些绘制模式下双击完成绘制
+        if self._current_mode in [InteractionMode.DRAW_LINE, InteractionMode.DRAW_POLYGON]:
+            return self._handleDrawFinish()
+        elif self._current_mode == InteractionMode.EDIT_BEZIER:
+            return self._handleBezierEditFinish()
+            
+        return {'handled': False}
+        
+    def getCurrentPreview(self) -> Optional[dict]:
+        """获取当前预览数据
+        
+        Returns:
+            预览数据字典，如果没有预览返回 None
+        """
+        if not self._current_point:
+            return None
+            
+        # 根据模式生成预览数据
+        if self._current_mode == InteractionMode.DRAW_LINE and self._temp_points:
+            return self._generateLinePreview()
+        elif self._current_mode == InteractionMode.DRAW_POLYGON and self._temp_points:
+            return self._generatePolygonPreview()
+        elif self._current_mode == InteractionMode.DRAW_BEZIER and self._temp_points:
+            return self._generateBezierPreview()
+        elif self._current_mode == InteractionMode.DRAW_RECTANGLE and (self._draw_start_point or self._start_point):
+            return self._generateRectanglePreview()
+        elif self._current_mode == InteractionMode.DRAW_CIRCLE and (self._draw_start_point or self._start_point):
+            return self._generateCirclePreview()
+            
+        return None
+        
+    # ==================== 选择模式 ====================
+    
+    def _handleSelectPress(self, world_x: float, world_y: float, modifiers: set) -> dict:
+        """处理选择模式的按下事件"""
+        primitive_id = self.selection_manager.pickPrimitive(world_x, world_y)
+        
+        if primitive_id:
+            append = 'ctrl' in modifiers or 'shift' in modifiers
+            self.selection_manager.selectPrimitive(primitive_id, append=append)
+            return {'handled': True, 'selected': primitive_id}
+        else:
+            if 'ctrl' not in modifiers and 'shift' not in modifiers:
+                self.selection_manager.clearSelection()
+            return {'handled': True, 'selected': None}
+            
+    # ==================== 移动模式 ====================
+    
+    def _handleMovePress(self, world_x: float, world_y: float) -> dict:
+        """处理移动模式的按下事件"""
+        # 检测是否点击了选中的图元
+        primitive_id = self.selection_manager.pickPrimitive(world_x, world_y)
+        
+        if primitive_id and self.selection_manager.isSelected(primitive_id):
+            self._move_start_point = (world_x, world_y)
+            return {'handled': True, 'move_start': True}
+        elif primitive_id:
+            # 选中新图元
+            self.selection_manager.selectPrimitive(primitive_id, append=False)
+            self._move_start_point = (world_x, world_y)
+            return {'handled': True, 'move_start': True}
+        else:
+            return {'handled': False}
+            
+    def _handleMoveMove(self, world_x: float, world_y: float) -> dict:
+        """处理移动模式的移动事件"""
+        if self._move_start_point is None:
+            return {'handled': False}
+            
+        dx = world_x - self._move_start_point[0]
+        dy = world_y - self._move_start_point[1]
+        
+        return {
+            'handled': True,
+            'moving': True,
+            'dx': dx,
+            'dy': dy,
+            'preview': True  # 标记为预览，不实际修改数据
+        }
+        
+    def _handleMoveRelease(self, world_x: float, world_y: float) -> dict:
+        """处理移动模式的释放事件"""
+        if self._move_start_point is None:
+            return {'handled': False}
+            
+        dx = world_x - self._move_start_point[0]
+        dy = world_y - self._move_start_point[1]
+        
+        # 发送移动信号
+        selected_ids = self.selection_manager.getSelectedPrimitives()
+        if selected_ids and (abs(dx) > 0.001 or abs(dy) > 0.001):
+            self.primitiveMoved.emit(selected_ids, dx, dy)
+            
+        self._move_start_point = None
+        return {'handled': True, 'moved': True, 'dx': dx, 'dy': dy}
+        
+    # ==================== 框选模式 ====================
+    
+    def _handleBoxSelectPress(self, world_x: float, world_y: float, modifiers: set) -> dict:
+        """处理框选模式的按下事件"""
+        return {'handled': True, 'box_select_start': True}
+        
+    def _handleBoxSelectMove(self, world_x: float, world_y: float) -> dict:
+        """处理框选模式的移动事件"""
+        return {'handled': True, 'box_selecting': True}
+        
+    def _handleBoxSelectRelease(self, world_x: float, world_y: float) -> dict:
+        """处理框选模式的释放事件"""
+        if self._start_point is None:
+            return {'handled': False}
+            
+        # 执行框选
+        selected_ids = self.selection_manager.boxSelect(
+            self._start_point[0], self._start_point[1],
+            world_x, world_y,
+            append=False
+        )
+        
+        return {'handled': True, 'box_selected': selected_ids}
+        
+    def _generateBoxSelectPreview(self) -> dict:
+        """生成框选预览"""
+        if not self._start_point or not self._current_point:
+            return None
+            
+        return {
+            'type': 'box_select',
+            'x1': self._start_point[0],
+            'y1': self._start_point[1],
+            'x2': self._current_point[0],
+            'y2': self._current_point[1]
+        }
+        
+    # ==================== 绘制模式（点击式）====================
+    
+    def _handleDrawClickPress(self, world_x: float, world_y: float) -> dict:
+        """处理点击式绘制的按下事件（线条、贝塞尔、多边形、点等）"""
+        # 在按下时不进行操作，改为在释放时判断点击时长
+        return {'handled': True}
+        
+    def _handleDrawFinish(self) -> dict:
+        """完成点击式绘制"""
+        if self._current_mode == InteractionMode.DRAW_LINE:
+            return self._finishLine()
+        elif self._current_mode == InteractionMode.DRAW_POLYGON:
+            return self._finishPolygon()
+            
+        return {'handled': False}
+        
+    def _finishLine(self) -> dict:
+        """完成线条绘制"""
+        if len(self._temp_points) < 2:
+            self._temp_points.clear()
+            return {'handled': False, 'error': 'Need at least 2 points'}
+            
+        data = LineData(
+            points=np.array(self._temp_points, dtype=np.float32),
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        self._temp_points.clear()
+        return {'handled': True, 'primitive_created': True, 'type': 'line'}
+        
+    def _finishBezier(self) -> dict:
+        """完成贝塞尔曲线绘制"""
+        if len(self._temp_points) < 3:
+            return {'handled': False, 'error': 'Need at least 3 points'}
+            
+        # 根据点数确定贝塞尔曲线阶数
+        degree = min(len(self._temp_points) - 1, 3)  # 最高三阶
+        
+        data = BezierData(
+            control_points=np.array(self._temp_points, dtype=np.float32),
+            degree=degree,
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        self._temp_points.clear()
+        return {'handled': True, 'primitive_created': True, 'type': 'bezier'}
+        
+    def _finishBezier2(self) -> dict:
+        """完成二阶贝塞尔曲线绘制"""
+        data = BezierData(
+            control_points=np.array(self._temp_points, dtype=np.float32),
+            degree=2,
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        self._temp_points.clear()
+        return {'handled': True, 'primitive_created': True, 'type': 'bezier2'}
+        
+    def _finishBezier3(self) -> dict:
+        """完成三阶贝塞尔曲线绘制"""
+        data = BezierData(
+            control_points=np.array(self._temp_points, dtype=np.float32),
+            degree=3,
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        self._temp_points.clear()
+        return {'handled': True, 'primitive_created': True, 'type': 'bezier3'}
+        
+    def _finishPolygon(self) -> dict:
+        """完成多边形绘制"""
+        if len(self._temp_points) < 3:
+            self._temp_points.clear()
+            return {'handled': False, 'error': 'Need at least 3 points'}
+            
+        data = PolygonData(
+            vertices=np.array(self._temp_points, dtype=np.float32),
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        self._temp_points.clear()
+        return {'handled': True, 'primitive_created': True, 'type': 'polygon'}
+        
+    def _finishMarker(self) -> dict:
+        """完成标记点绘制"""
+        if not self._temp_points:
+            return {'handled': False}
+            
+        # 每次点击创建一个标记点
+        data = MarkersData(
+            positions=np.array([self._temp_points[-1]], dtype=np.float32),
+            sizes=np.array([5.0]),
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        # 不清空 temp_points，允许继续添加
+        return {'handled': True, 'primitive_created': True, 'type': 'marker'}
+        
+    # ==================== 绘制模式（拖拽式）====================
+    
+    def _handleDrawDragPress(self, world_x: float, world_y: float) -> dict:
+        """处理拖拽式绘制的按下事件（矩形、圆形等）"""
+        # 在按下时不进行操作，改为在释放时判断点击时长
+        return {'handled': True}
+        
+    def _handleDrawDragMove(self, world_x: float, world_y: float) -> dict:
+        """处理拖拽式绘制的移动事件"""
+        return {'handled': True, 'dragging': True}
+        
+    def _handleDrawDragRelease(self, world_x: float, world_y: float) -> dict:
+        """处理拖拽式绘制的释放事件"""
+        # 过滤掉长按事件（超过200ms认为是拖拽/长按）
+        if time.time() - self._press_time > 0.2:
+            return {'handled': False}
+
+        # 第一次点击（设置起点）
+        if self._draw_start_point is None:
+            self._draw_start_point = (world_x, world_y)
+            return {'handled': True, 'start_set': True}
+            
+        # 第二次点击（完成绘制）
+        if self._current_mode == InteractionMode.DRAW_RECTANGLE:
+            return self._finishRectangle()
+        elif self._current_mode == InteractionMode.DRAW_CIRCLE:
+            return self._finishCircle()
+        elif self._current_mode == InteractionMode.DRAW_ARC:
+            return self._finishArc()
+            
+        return {'handled': False}
+        
+    def _finishRectangle(self) -> dict:
+        """完成矩形绘制"""
+        if not self._draw_start_point or not self._current_point:
+            return {'handled': False}
+            
+        x1, y1 = self._draw_start_point
+        x2, y2 = self._current_point
+        
+        min_x, max_x = min(x1, x2), max(x1, x2)
+        min_y, max_y = min(y1, y2), max(y1, y2)
+        width, height = max_x - min_x, max_y - min_y
+        
+        if width < 1e-6 or height < 1e-6:
+            return {'handled': False, 'error': 'Rectangle too small'}
+            
+        data = RectangleData(
+            pos=(min_x, min_y),
+            size=(width, height),
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        # 清理状态，准备下一次绘制
+        self._start_point = None
+        self._current_point = None
+        self._draw_start_point = None
+        return {'handled': True, 'primitive_created': True, 'type': 'rectangle'}
+        
+    def _finishCircle(self) -> dict:
+        """完成圆形绘制"""
+        if not self._draw_start_point or not self._current_point:
+            return {'handled': False}
+            
+        center = self._draw_start_point
+        dx = self._current_point[0] - center[0]
+        dy = self._current_point[1] - center[1]
+        radius = np.sqrt(dx**2 + dy**2)
+        
+        if radius < 1e-6:
+            return {'handled': False, 'error': 'Circle too small'}
+            
+        data = CircleData(
+            center=center,
+            radius=(radius, radius),
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        # 清理状态，准备下一次绘制
+        self._start_point = None
+        self._current_point = None
+        self._draw_start_point = None
+        return {'handled': True, 'primitive_created': True, 'type': 'circle'}
+        
+    def _finishArc(self) -> dict:
+        """完成圆弧绘制（简化版：从起点到当前点的圆弧）"""
+        if not self._draw_start_point or not self._current_point:
+            return {'handled': False}
+            
+        center = self._draw_start_point
+        dx = self._current_point[0] - center[0]
+        dy = self._current_point[1] - center[1]
+        radius = np.sqrt(dx**2 + dy**2)
+        
+        if radius < 1e-6:
+            return {'handled': False, 'error': 'Arc too small'}
+            
+        # 简化：绘制90度圆弧
+        start_angle = 0.0
+        end_angle = 90.0
+        
+        data = ArcData(
+            center=center,
+            radius=radius,
+            start_angle=start_angle,
+            end_angle=end_angle,
+            style=self._default_style.copy()
+        )
+        
+        self.primitiveCreated.emit(data)
+        # 清理状态，准备下一次绘制
+        self._start_point = None
+        self._current_point = None
+        self._draw_start_point = None
+        return {'handled': True, 'primitive_created': True, 'type': 'arc'}
+        
+    # ==================== 预览生成 ====================
+    
+    def _generateLinePreview(self) -> dict:
+        """生成线条预览"""
+        if not self._temp_points or not self._current_point:
+            return None
+            
+        preview_points = self._temp_points + [self._current_point]
+        return {
+            'type': 'line',
+            'points': preview_points
+        }
+        
+    def _generateRectanglePreview(self) -> dict:
+        """生成矩形预览"""
+        start = self._draw_start_point or self._start_point
+        if not start or not self._current_point:
+            return None
+            
+        x1, y1 = start
+        x2, y2 = self._current_point
+        
+        return {
+            'type': 'rectangle',
+            'x1': min(x1, x2),
+            'y1': min(y1, y2),
+            'width': abs(x2 - x1),
+            'height': abs(y2 - y1)
+        }
+        
+    def _generatePolygonPreview(self) -> dict:
+        """生成多边形预览数据"""
+        if len(self._temp_points) > 0:
+            points = list(self._temp_points)
+            if self._current_point:
+                points.append(self._current_point)
+            return {
+                'type': 'polygon',
+                'points': points
+            }
+        return None
+    
+    def _generateBezierPreview(self) -> dict:
+        """生成贝塞尔曲线预览数据"""
+        if len(self._temp_points) > 0:
+            points = list(self._temp_points)
+            if self._current_point:
+                points.append(self._current_point)
+            return {
+                'type': 'bezier',
+                'points': points
+            }
+        return None
+    
+    def _generateCirclePreview(self) -> dict:
+        """生成圆形预览"""
+        start = self._draw_start_point or self._start_point
+        if not start or not self._current_point:
+            return None
+            
+        center = start
+        dx = self._current_point[0] - center[0]
+        dy = self._current_point[1] - center[1]
+        radius = np.sqrt(dx**2 + dy**2)
+        
+        return {
+            'type': 'circle',
+            'center': center,
+            'radius': radius
+        }
+        
+    # ==================== 新增交互处理 ====================
+    
+    def _handleDrawMove(self, world_x: float, world_y: float) -> dict:
+        """处理绘制模式的移动事件（用于多段线、多边形、贝塞尔曲线）"""
+        return {'handled': True, 'preview': True}
+    
+    def _handleDrawRelease(self, world_x: float, world_y: float) -> dict:
+        """处理绘制模式的释放事件（用于多段线、多边形、贝塞尔曲线、点）"""
+        # 过滤掉长按事件
+        if time.time() - self._press_time > 0.2:
+            return {'handled': False}
+
+        if self._current_mode == InteractionMode.DRAW_POINT:
+            # 点模式：直接创建点
+            return self._createPoint(world_x, world_y)
+        elif self._current_mode in [InteractionMode.DRAW_LINE, InteractionMode.DRAW_POLYGON]:
+            # 多段线和多边形：添加端点
+            return self._addLinePoint(world_x, world_y)
+        elif self._current_mode == InteractionMode.DRAW_BEZIER:
+            # 贝塞尔曲线：添加控制点
+            # 检查是否完成绘制（这里暂时保留原逻辑，通常由双击完成）
+            if len(self._temp_points) >= 3 and self._current_mode == InteractionMode.DRAW_BEZIER:
+                 # 注意：这里需要考虑是否自动完成。
+                 # 原逻辑是在Press中检查len>=3就finishBezier。
+                 # 我们这里先添加点，是否Finish由双击决定？
+                 # 原Press逻辑：
+                 # if self._current_mode == InteractionMode.DRAW_BEZIER and len(self._temp_points) >= 3:
+                 #    return self._finishBezier()
+                 pass
+            
+            result = self._addBezierPoint(world_x, world_y)
+            
+            # 如果是贝塞尔曲线，且已经有足够的点，检查是否需要自动完成？
+            # 原逻辑是在Press时检查。如果移到Release，我们添加点后检查。
+            # 但通常多点绘制由双击结束。
+            # 只有当特定的自动完成逻辑存在时才需要。
+            # 原Press逻辑似乎暗示攒够3个点就自动结束？
+            # 让我们查看原来的 _handleDrawClickPress 代码：
+            # if self._current_mode == InteractionMode.DRAW_BEZIER and len(self._temp_points) >= 3:
+            #    return self._finishBezier()
+            # 是的，它在append之后检查。
+            
+            if self._current_mode == InteractionMode.DRAW_BEZIER and len(self._temp_points) >= 3:
+                 return self._finishBezier()
+                 
+            return result
+        
+        return {'handled': False}
+    
+    def _handleBezierEditPress(self, world_x: float, world_y: float) -> dict:
+        """处理贝塞尔曲线编辑模式的按下事件"""
+        # 检测是否点击了控制点
+        control_point = self._pickBezierControlPoint(world_x, world_y)
+        if control_point:
+            self._editing_control_point = control_point
+            return {'handled': True, 'editing': True}
+        return {'handled': False}
+    
+    def _handleBezierEditMove(self, world_x: float, world_y: float) -> dict:
+        """处理贝塞尔曲线编辑模式的移动事件"""
+        if hasattr(self, '_editing_control_point') and self._editing_control_point:
+            # 移动控制点
+            return {'handled': True, 'moving': True, 'dx': world_x - self._editing_control_point[0], 
+                    'dy': world_y - self._editing_control_point[1]}
+        return {'handled': False}
+    
+    def _handleBezierEditRelease(self, world_x: float, world_y: float) -> dict:
+        """处理贝塞尔曲线编辑模式的释放事件"""
+        if hasattr(self, '_editing_control_point') and self._editing_control_point:
+            # 更新控制点位置
+            self._editing_control_point = None
+            return {'handled': True, 'updated': True}
+        return {'handled': False}
+    
+    def _handleBezierEditFinish(self) -> dict:
+        """完成贝塞尔曲线编辑"""
+        if hasattr(self, '_editing_control_point'):
+            self._editing_control_point = None
+        return {'handled': True, 'finished': True}
+    
+    def _createPoint(self, x: float, y: float) -> dict:
+        """创建点图元"""
+        point_data = PointData(x=x, y=y)
+        self.primitiveCreated.emit(point_data)
+        return {'handled': True, 'created': True, 'type': 'point'}
+    
+    def _addLinePoint(self, x: float, y: float) -> dict:
+        """添加线条端点"""
+        self._temp_points.append((x, y))
+        return {'handled': True, 'point_added': True}
+    
+    def _addBezierPoint(self, x: float, y: float) -> dict:
+        """添加贝塞尔控制点"""
+        self._temp_points.append((x, y))
+        return {'handled': True, 'control_point_added': True}
+    
+    def _pickBezierControlPoint(self, x: float, y: float) -> Optional[tuple]:
+        """拾取贝塞尔控制点"""
+        # TODO: 实现控制点拾取逻辑
+        return None
+    
+    # ==================== 悬停预览 ====================
+    
+    def _handleHoverMove(self, world_x: float, world_y: float) -> dict:
+        """处理悬停移动（非按下状态）"""
+        return {'handled': False, 'hover': True, 'x': world_x, 'y': world_y}
+        
+    # ==================== 状态管理 ====================
+    
+    def _clearState(self) -> None:
+        """清理交互状态"""
+        self._is_pressing = False
+        self._start_point = None
+        self._current_point = None
+        self._temp_points.clear()
+        self._move_start_point = None
+        self._draw_start_point = None
+        
+    def cancelCurrentOperation(self) -> None:
+        """取消当前操作（如按ESC键）"""
+        self._clearState()
+        self.interactionStateChanged.emit({'cancelled': True})

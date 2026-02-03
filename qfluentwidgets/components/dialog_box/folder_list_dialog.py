@@ -242,7 +242,7 @@ class FolderCard(ClickableWindow):
         self.folderPath = folderPath
         self.folderName = os.path.basename(folderPath)
         c = getIconColor()
-        self.__closeIcon = QPixmap(f":/qfluentwidgets/images/folder_list_dialog/Close_{c}.png").scaled(
+        self.__closeIcon = QPixmap(f":/icon/images/folder_list_dialog/Close_{c}.png").scaled(
             12, 12, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
     def paintEvent(self, e):
@@ -288,7 +288,7 @@ class AddFolderCard(ClickableWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         c = getIconColor()
-        self.__iconPix = QPixmap(f":/qfluentwidgets/images/folder_list_dialog/Add_{c}.png").scaled(
+        self.__iconPix = QPixmap(f":/icon/images/folder_list_dialog/Add_{c}.png").scaled(
             22, 22, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
     def paintEvent(self, e):
