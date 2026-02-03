@@ -6,10 +6,10 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QFrame
+from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QFrame, QVBoxLayout, QWidget
 
 from qfluentwidgets import (NavigationItemPosition, FluentWindow,
-                            FluentIcon as FIF, Theme, setTheme)
+                            FluentIcon as FIF, Theme, setTheme, DrawerWindow, PrimaryPushButton)
 
 
 class Widget(QFrame):
@@ -23,6 +23,48 @@ class Widget(QFrame):
         self.setObjectName(text.replace(' ', '-'))
 
 
+class SearchInterface(DrawerWindow):
+    """ Search interface with drawer """
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.setObjectName("search-interface")
+        
+        # Central widget
+        self.central_widget = QWidget()
+        self.set_central_widget(self.central_widget)
+        
+        # Layout
+        self.vBoxLayout = QVBoxLayout(self.central_widget)
+        self.vBoxLayout.setContentsMargins(30, 30, 30, 30)
+        self.vBoxLayout.setAlignment(Qt.AlignCenter)
+        
+        self.label = QLabel("Search Interface with Drawer", self.central_widget)
+        self.label.setStyleSheet("font-size: 24px; font-weight: bold;")
+        
+        # Buttons to open drawers
+        self.openRightDrawerBtn = PrimaryPushButton("Open Filters (Right)", self.central_widget)
+        self.openRightDrawerBtn.clicked.connect(lambda: self.show_drawer('right', 300, "Search Filters"))
+        
+        self.openBottomDrawerBtn = PrimaryPushButton("Open Console (Bottom)", self.central_widget)
+        self.openBottomDrawerBtn.clicked.connect(lambda: self.show_drawer('bottom', 200, "Console Output"))
+        
+        self.vBoxLayout.addWidget(self.label)
+        self.vBoxLayout.addSpacing(20)
+        self.vBoxLayout.addWidget(self.openRightDrawerBtn)
+        self.vBoxLayout.addWidget(self.openBottomDrawerBtn)
+        
+        # Populate Right Drawer
+        self.right_drawer.content_layout.setContentsMargins(15, 15, 15, 15)
+        self.right_drawer.content_layout.addWidget(QLabel("Filter Options:"))
+        self.right_drawer.content_layout.addWidget(PrimaryPushButton("Apply Filter"))
+        self.right_drawer.content_layout.addStretch(1)
+        
+        # Populate Bottom Drawer
+        self.bottom_drawer.content_layout.setContentsMargins(15, 15, 15, 15)
+        self.bottom_drawer.content_layout.addWidget(QLabel("System Logs..."))
+
+
 class Window(FluentWindow):
 
     def __init__(self):
@@ -32,7 +74,7 @@ class Window(FluentWindow):
         self.setMicaEffectEnabled(True)
 
         # create sub interfaces
-        self.searchInterface = Widget('Search Interface', self)
+        self.searchInterface = SearchInterface(self)
         self.musicInterface = Widget('Music Interface', self)
         self.videoInterface = Widget('Video Interface', self)
         self.folderInterface = Widget('Folder Interface', self)
