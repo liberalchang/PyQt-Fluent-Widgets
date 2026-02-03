@@ -1,0 +1,13 @@
+QToolButton {
+    border: none;
+    background: transparent;
+    border-radius: 15px;
+}
+
+QToolButton:hover {
+    background-color: rgba(0, 0, 0, 9);
+}
+
+QToolButton:pressed {
+    background-color: rgba(0, 0, 0, 6);
+}

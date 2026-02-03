@@ -249,6 +249,157 @@ class OpacityLineEdit(ColorLineEdit):
         self.suffixLabel.move(x, 2)
 
 
+class ColorPickerWidget(QWidget):
+    """ Color picker widget """
+
+    colorChanged = Signal(QColor)
+
+    def __init__(self, color, title: str, parent=None, enableAlpha=False):
+        super().__init__(parent)
+        self.enableAlpha = enableAlpha
+        if not enableAlpha:
+            color = QColor(color)
+            color.setAlpha(255)
+
+        self.color = QColor(color)
+
+        self.titleLabel = QLabel(title, self)
+        self.huePanel = HuePanel(color, self)
+        self.newColorCard = ColorCard(color, self, enableAlpha)
+        self.oldColorCard = ColorCard(color, self, enableAlpha)
+        self.brightSlider = BrightnessSlider(color, self)
+
+        self.editLabel = QLabel(self.tr('Edit Color'), self)
+        self.redLabel = QLabel(self.tr('Red'), self)
+        self.blueLabel = QLabel(self.tr('Blue'), self)
+        self.greenLabel = QLabel(self.tr('Green'), self)
+        self.opacityLabel = QLabel(self.tr('Opacity'), self)
+        self.hexLineEdit = HexColorLineEdit(color, self, enableAlpha)
+        self.redLineEdit = ColorLineEdit(self.color.red(), self)
+        self.greenLineEdit = ColorLineEdit(self.color.green(), self)
+        self.blueLineEdit = ColorLineEdit(self.color.blue(), self)
+        self.opacityLineEdit = OpacityLineEdit(self.color.alpha(), self)
+
+        self.__initWidget()
+
+    def __initWidget(self):
+        self.setFixedSize(440, 530+40*self.enableAlpha)
+
+        self.__setQss()
+        self.__initLayout()
+        self.__connectSignalToSlot()
+
+    def __initLayout(self):
+        self.huePanel.move(0, 36)
+        self.newColorCard.move(288, 36)
+        self.oldColorCard.move(288, self.newColorCard.geometry().bottom()+1)
+        self.brightSlider.move(0, 308)
+
+        self.editLabel.move(0, 360)
+        self.redLineEdit.move(0, 396)
+        self.greenLineEdit.move(0, 440)
+        self.blueLineEdit.move(0, 484)
+        self.redLabel.move(144, 404)
+        self.greenLabel.move(144, 448)
+        self.blueLabel.move(144, 492)
+        self.hexLineEdit.move(196, 356)
+
+        if self.enableAlpha:
+            self.opacityLineEdit.move(0, 528)
+            self.opacityLabel.move(144, 535)
+        else:
+            self.opacityLineEdit.hide()
+            self.opacityLabel.hide()
+
+    def __setQss(self):
+        self.editLabel.setObjectName('editLabel')
+        self.titleLabel.setObjectName('titleLabel')
+        FluentStyleSheet.COLOR_DIALOG.apply(self)
+        self.titleLabel.adjustSize()
+        self.editLabel.adjustSize()
+
+    def setColor(self, color, movePicker=True):
+        """ set color """
+        self.color = QColor(color)
+        self.brightSlider.setColor(color)
+        self.newColorCard.setColor(color)
+        self.hexLineEdit.setColor(color)
+        self.redLineEdit.setText(str(color.red()))
+        self.blueLineEdit.setText(str(color.blue()))
+        self.greenLineEdit.setText(str(color.green()))
+        if movePicker:
+            self.huePanel.setColor(color)
+
+    def __onHueChanged(self, color):
+        """ hue changed slot """
+        self.color.setHsv(
+            color.hue(), color.saturation(), self.color.value(), self.color.alpha())
+        self.setColor(self.color)
+        self.colorChanged.emit(self.color)
+
+    def __onBrightnessChanged(self, color):
+        """ brightness changed slot """
+        self.color.setHsv(
+            self.color.hue(), self.color.saturation(), color.value(), color.alpha())
+        self.setColor(self.color, False)
+        self.colorChanged.emit(self.color)
+
+    def __onRedChanged(self, red):
+        """ red channel changed slot """
+        self.color.setRed(int(red))
+        self.setColor(self.color)
+        self.colorChanged.emit(self.color)
+
+    def __onBlueChanged(self, blue):
+        """ blue channel changed slot """
+        self.color.setBlue(int(blue))
+        self.setColor(self.color)
+        self.colorChanged.emit(self.color)
+
+    def __onGreenChanged(self, green):
+        """ green channel changed slot """
+        self.color.setGreen(int(green))
+        self.setColor(self.color)
+        self.colorChanged.emit(self.color)
+
+    def __onOpacityChanged(self, opacity):
+        """ opacity channel changed slot """
+        self.color.setAlpha(int(int(opacity)/100*255))
+        self.setColor(self.color)
+        self.colorChanged.emit(self.color)
+
+    def __onHexColorChanged(self, color):
+        """ hex color changed slot """
+        self.color.setNamedColor("#" + color)
+        self.setColor(self.color)
+        self.colorChanged.emit(self.color)
+
+    def updateStyle(self):
+        """ update style sheet """
+        self.setStyle(QApplication.style())
+        self.titleLabel.adjustSize()
+        self.editLabel.adjustSize()
+        self.redLabel.adjustSize()
+        self.greenLabel.adjustSize()
+        self.blueLabel.adjustSize()
+        self.opacityLabel.adjustSize()
+
+    def showEvent(self, e):
+        self.updateStyle()
+        super().showEvent(e)
+
+    def __connectSignalToSlot(self):
+        """ connect signal to slot """
+        self.huePanel.colorChanged.connect(self.__onHueChanged)
+        self.brightSlider.colorChanged.connect(self.__onBrightnessChanged)
+
+        self.redLineEdit.valueChanged.connect(self.__onRedChanged)
+        self.blueLineEdit.valueChanged.connect(self.__onBlueChanged)
+        self.greenLineEdit.valueChanged.connect(self.__onGreenChanged)
+        self.hexLineEdit.valueChanged.connect(self.__onHexColorChanged)
+        self.opacityLineEdit.valueChanged.connect(self.__onOpacityChanged)
+
+
 class ColorDialog(MaskDialogBase):
     """ Color dialog """
 
@@ -280,28 +431,11 @@ class ColorDialog(MaskDialogBase):
         self.color = QColor(color)
 
         self.scrollArea = SingleDirectionScrollArea(self.widget)
-        self.scrollWidget = QWidget(self.scrollArea)
+        self.scrollWidget = ColorPickerWidget(color, title, self.scrollArea, enableAlpha)
 
         self.buttonGroup = QFrame(self.widget)
         self.yesButton = PrimaryPushButton(self.tr('OK'), self.buttonGroup)
         self.cancelButton = QPushButton(self.tr('Cancel'), self.buttonGroup)
-
-        self.titleLabel = QLabel(title, self.scrollWidget)
-        self.huePanel = HuePanel(color, self.scrollWidget)
-        self.newColorCard = ColorCard(color, self.scrollWidget, enableAlpha)
-        self.oldColorCard = ColorCard(color, self.scrollWidget, enableAlpha)
-        self.brightSlider = BrightnessSlider(color, self.scrollWidget)
-
-        self.editLabel = QLabel(self.tr('Edit Color'), self.scrollWidget)
-        self.redLabel = QLabel(self.tr('Red'), self.scrollWidget)
-        self.blueLabel = QLabel(self.tr('Blue'), self.scrollWidget)
-        self.greenLabel = QLabel(self.tr('Green'), self.scrollWidget)
-        self.opacityLabel = QLabel(self.tr('Opacity'), self.scrollWidget)
-        self.hexLineEdit = HexColorLineEdit(color, self.scrollWidget, enableAlpha)
-        self.redLineEdit = ColorLineEdit(self.color.red(), self.scrollWidget)
-        self.greenLineEdit = ColorLineEdit(self.color.green(), self.scrollWidget)
-        self.blueLineEdit = ColorLineEdit(self.color.blue(), self.scrollWidget)
-        self.opacityLineEdit = OpacityLineEdit(self.color.alpha(), self.scrollWidget)
 
         self.vBoxLayout = QVBoxLayout(self.widget)
 
@@ -312,9 +446,7 @@ class ColorDialog(MaskDialogBase):
         self.scrollArea.setViewportMargins(48, 24, 0, 24)
         self.scrollArea.setWidget(self.scrollWidget)
 
-        self.widget.setMaximumSize(488, 696+40*self.enableAlpha)
-        self.widget.resize(488, 696+40*self.enableAlpha)
-        self.scrollWidget.resize(440, 560+40*self.enableAlpha)
+        self.widget.setFixedSize(488, 660+40*self.enableAlpha)
         self.buttonGroup.setFixedSize(486, 81)
         self.yesButton.setFixedWidth(216)
         self.cancelButton.setFixedWidth(216)
@@ -322,32 +454,15 @@ class ColorDialog(MaskDialogBase):
         self.setShadowEffect(60, (0, 10), QColor(0, 0, 0, 80))
         self.setMaskColor(QColor(0, 0, 0, 76))
 
-        self.__setQss()
+        self.yesButton.setObjectName('yesButton')
+        self.cancelButton.setObjectName('cancelButton')
+        self.buttonGroup.setObjectName('buttonGroup')
+        FluentStyleSheet.COLOR_DIALOG.apply(self)
+
         self.__initLayout()
         self.__connectSignalToSlot()
 
     def __initLayout(self):
-        self.huePanel.move(0, 46)
-        self.newColorCard.move(288, 46)
-        self.oldColorCard.move(288, self.newColorCard.geometry().bottom()+1)
-        self.brightSlider.move(0, 324)
-
-        self.editLabel.move(0, 385)
-        self.redLineEdit.move(0, 426)
-        self.greenLineEdit.move(0, 470)
-        self.blueLineEdit.move(0, 515)
-        self.redLabel.move(144, 434)
-        self.greenLabel.move(144, 478)
-        self.blueLabel.move(144, 524)
-        self.hexLineEdit.move(196, 381)
-
-        if self.enableAlpha:
-            self.opacityLineEdit.move(0, 560)
-            self.opacityLabel.move(144, 567)
-        else:
-            self.opacityLineEdit.hide()
-            self.opacityLabel.hide()
-
         self.vBoxLayout.setSpacing(0)
         self.vBoxLayout.setAlignment(Qt.AlignTop)
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
@@ -357,80 +472,16 @@ class ColorDialog(MaskDialogBase):
         self.yesButton.move(24, 25)
         self.cancelButton.move(250, 25)
 
-    def __setQss(self):
-        self.editLabel.setObjectName('editLabel')
-        self.titleLabel.setObjectName('titleLabel')
-        self.yesButton.setObjectName('yesButton')
-        self.cancelButton.setObjectName('cancelButton')
-        self.buttonGroup.setObjectName('buttonGroup')
-        FluentStyleSheet.COLOR_DIALOG.apply(self)
-        self.titleLabel.adjustSize()
-        self.editLabel.adjustSize()
-
-    def setColor(self, color, movePicker=True):
-        """ set color """
-        self.color = QColor(color)
-        self.brightSlider.setColor(color)
-        self.newColorCard.setColor(color)
-        self.hexLineEdit.setColor(color)
-        self.redLineEdit.setText(str(color.red()))
-        self.blueLineEdit.setText(str(color.blue()))
-        self.greenLineEdit.setText(str(color.green()))
-        if movePicker:
-            self.huePanel.setColor(color)
-
-    def __onHueChanged(self, color):
-        """ hue changed slot """
-        self.color.setHsv(
-            color.hue(), color.saturation(), self.color.value(), self.color.alpha())
-        self.setColor(self.color)
-
-    def __onBrightnessChanged(self, color):
-        """ brightness changed slot """
-        self.color.setHsv(
-            self.color.hue(), self.color.saturation(), color.value(), color.alpha())
-        self.setColor(self.color, False)
-
-    def __onRedChanged(self, red):
-        """ red channel changed slot """
-        self.color.setRed(int(red))
-        self.setColor(self.color)
-
-    def __onBlueChanged(self, blue):
-        """ blue channel changed slot """
-        self.color.setBlue(int(blue))
-        self.setColor(self.color)
-
-    def __onGreenChanged(self, green):
-        """ green channel changed slot """
-        self.color.setGreen(int(green))
-        self.setColor(self.color)
-
-    def __onOpacityChanged(self, opacity):
-        """ opacity channel changed slot """
-        self.color.setAlpha(int(int(opacity)/100*255))
-        self.setColor(self.color)
-
-    def __onHexColorChanged(self, color):
-        """ hex color changed slot """
-        self.color.setNamedColor("#" + color)
-        self.setColor(self.color)
-
     def __onYesButtonClicked(self):
         """ yes button clicked slot """
         self.accept()
-        if self.color != self.oldColor:
+        if self.scrollWidget.color != self.oldColor:
+            self.color = self.scrollWidget.color
             self.colorChanged.emit(self.color)
 
     def updateStyle(self):
         """ update style sheet """
-        self.setStyle(QApplication.style())
-        self.titleLabel.adjustSize()
-        self.editLabel.adjustSize()
-        self.redLabel.adjustSize()
-        self.greenLabel.adjustSize()
-        self.blueLabel.adjustSize()
-        self.opacityLabel.adjustSize()
+        self.scrollWidget.updateStyle()
 
     def showEvent(self, e):
         self.updateStyle()
@@ -441,11 +492,3 @@ class ColorDialog(MaskDialogBase):
         self.cancelButton.clicked.connect(self.reject)
         self.yesButton.clicked.connect(self.__onYesButtonClicked)
 
-        self.huePanel.colorChanged.connect(self.__onHueChanged)
-        self.brightSlider.colorChanged.connect(self.__onBrightnessChanged)
-
-        self.redLineEdit.valueChanged.connect(self.__onRedChanged)
-        self.blueLineEdit.valueChanged.connect(self.__onBlueChanged)
-        self.greenLineEdit.valueChanged.connect(self.__onGreenChanged)
-        self.hexLineEdit.valueChanged.connect(self.__onHexColorChanged)
-        self.opacityLineEdit.valueChanged.connect(self.__onOpacityChanged)

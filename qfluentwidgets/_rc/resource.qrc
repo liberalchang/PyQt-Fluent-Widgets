@@ -40,6 +40,9 @@
     <file>qss/light/time_picker.qss</file>
     <file>qss/light/tool_tip.qss</file>
     <file>qss/light/tree_view.qss</file>
+    <file>qss/light/color_palette.qss</file>
+    <file>qss/light/circle_color_picker.qss</file>
+    <file>qss/light/screen_color_picker.qss</file>
     <file>qss/dark/button.qss</file>
     <file>qss/dark/calendar_picker.qss</file>
     <file>qss/dark/card_widget.qss</file>
@@ -76,6 +79,9 @@
     <file>qss/dark/time_picker.qss</file>
     <file>qss/dark/tool_tip.qss</file>
     <file>qss/dark/tree_view.qss</file>
+    <file>qss/dark/color_palette.qss</file>
+    <file>qss/dark/circle_color_picker.qss</file>
+    <file>qss/dark/screen_color_picker.qss</file>
   </qresource>
   <qresource prefix="qm">
     <file>i18n/qfluentwidgets.ar_AR.qm</file>
