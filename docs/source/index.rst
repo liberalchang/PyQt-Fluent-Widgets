@@ -1,7 +1,4 @@
-.. PyQt-Fluent-Widgets documentation master file, created by
-   sphinx-quickstart on Tue Jan 17 15:31:54 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. PySide6-Fluent-Widgets 中文文档主文件
 
 .. raw:: html
 
@@ -10,13 +7,13 @@
    </p>
 
    <h1 align="center">
-      PyQt-Fluent-Widgets
+      PySide6-Fluent-Widgets
    </h1>
 
    <hr/>
 
    <p align="center">
-      A fluent design widgets library based on PyQt5
+      基于 PySide6 的 Fluent Design 风格组件库
    </p>
 
    <p align="center">
@@ -38,18 +35,66 @@
    </p>
 
 
-Welcome to PyQt-Fluent-Widgets's document!
-===============================================
-This document will show you all the features of PyQt-Fluent-Widgets and the best practice of it.
+欢迎使用 PySide6-Fluent-Widgets 中文文档！
+==========================================
+
+本文档将为您介绍 PySide6-Fluent-Widgets 的所有功能特性和最佳实践。
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents
+   :caption: 目录
 
-   quick-start
-   settings
-   theme
-   navigation
-   icon
-   gallery
-   see-also
+   introduction
+   architecture
+   api/index
+   components/index
+   code_examples/index
+
+项目介绍
+--------
+
+PySide6-Fluent-Widgets 是一个基于 PySide6 的 Fluent Design 风格组件库。
+它提供了丰富的现代化 UI 组件，帮助开发者快速构建美观的应用程序。
+
+主要特性
+--------
+
+* **现代化设计**: 采用 Microsoft Fluent Design 设计语言
+* **丰富组件**: 提供按钮、输入框、对话框、导航等常用组件
+* **主题支持**: 支持亮色/暗色主题切换
+* **易于使用**: 简洁的 API 设计，易于集成到现有项目
+* **中文友好**: 完整的中文文档和示例
+
+快速开始
+--------
+
+.. code-block:: python
+
+   from qfluentwidgets import *
+   from PySide6.QtWidgets import QApplication, QMainWindow
+
+   app = QApplication([])
+   window = QMainWindow()
+   
+   # 创建一个按钮
+   button = PushButton('点击我')
+   window.setCentralWidget(button)
+   
+   window.show()
+   app.exec()
+
+目录结构
+--------
+
+* :doc:`introduction` - 项目介绍和快速开始
+* :doc:`architecture` - 架构概览
+* :doc:`api/index` - API 参考文档
+* :doc:`components/index` - 组件使用指南
+* :doc:`code_examples/index` - 示例代码
+
+索引和表格
+----------
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
