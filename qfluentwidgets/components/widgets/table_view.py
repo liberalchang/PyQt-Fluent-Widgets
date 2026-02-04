@@ -748,6 +748,7 @@ class TableView(TableBase, QTableView):
     
     def __init__(self, parent=None):
         super().__init__(parent)
+        updateDynamicStyle(self)
 
     def isSelectRightClickedRow(self):
         return self._isSelectRightClickedRow
