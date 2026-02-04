@@ -136,6 +136,10 @@ class Scene2DInterface(QWidget):
         self.clearBtn.clicked.connect(self._on_clear_clicked)
         btn_layout.addWidget(self.clearBtn)
         
+        self.removeLastBtn = PushButton("移除最后一个")
+        self.removeLastBtn.clicked.connect(self._on_remove_last_clicked)
+        btn_layout.addWidget(self.removeLastBtn)
+        
         self.resetBtn = PushButton("重置视图")
         self.resetBtn.clicked.connect(self._on_reset_clicked)
         btn_layout.addWidget(self.resetBtn)
@@ -299,6 +303,27 @@ class Scene2DInterface(QWidget):
         vid = self.vispyWidget.add_text(text, pos, font_size=16, color='white')
         self.vispyWidget.auto_range()
     
+    def _on_remove_last_clicked(self):
+        """移除最后一个添加的图形"""
+        if not self.has_vispy or not self.visual_ids:
+            return
+            
+        # 获取最后一个添加的键
+        last_key = list(self.visual_ids.keys())[-1]
+        vid = self.visual_ids[last_key]
+        
+        # 从 VispyWidget 中移除
+        # 使用 remove_visual(visual_id) 移除指定图形
+        if self.vispyWidget.remove_visual(vid):
+            # 从追踪字典中移除
+            del self.visual_ids[last_key]
+            
+            # 如果有对应的复选框，也移除
+            if last_key in self.visCheckboxes:
+                checkbox = self.visCheckboxes.pop(last_key)
+                self.vis_layout.removeWidget(checkbox)
+                checkbox.deleteLater()
+
     def _on_clear_clicked(self):
         """清除所有图形"""
         if self.has_vispy:
@@ -391,6 +416,10 @@ class Scene3DInterface(QWidget):
         self.clearBtn = PushButton("清除所有")
         self.clearBtn.clicked.connect(self._on_clear_clicked)
         btn_layout.addWidget(self.clearBtn)
+        
+        self.removeLastBtn = PushButton("移除最后一个")
+        self.removeLastBtn.clicked.connect(self._on_remove_last_clicked)
+        btn_layout.addWidget(self.removeLastBtn)
         
         self.resetBtn = PushButton("重置视图")
         self.resetBtn.clicked.connect(self._on_reset_clicked)
@@ -519,6 +548,20 @@ class Scene3DInterface(QWidget):
         vid = self.vispyWidget.add_axes(size=size)
         self.vispyWidget.auto_range()
     
+    def _on_remove_last_clicked(self):
+        """移除最后一个添加的图形"""
+        if not self.has_vispy or not self.visual_ids:
+            return
+            
+        # 获取最后一个添加的键
+        last_key = list(self.visual_ids.keys())[-1]
+        vid = self.visual_ids[last_key]
+        
+        # 从 VispyWidget 中移除
+        if self.vispyWidget.remove_visual(vid):
+            # 从追踪字典中移除
+            del self.visual_ids[last_key]
+
     def _on_clear_clicked(self):
         """清除所有图形"""
         if self.has_vispy:

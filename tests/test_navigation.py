@@ -9,7 +9,16 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QFrame, QVBoxLayout, QWidget
 
 from qfluentwidgets import (NavigationItemPosition, FluentWindow,
-                            FluentIcon as FIF, Theme, setTheme, DrawerWindow, PrimaryPushButton)
+                            FluentIcon as FIF, Theme, setTheme, DrawerWindow, PrimaryPushButton,
+                            ScrollArea, SettingCardGroup, OptionsSettingCard, ExpandLayout,
+                            OptionsConfigItem, OptionsValidator, QConfig, qconfig)
+
+
+class Config(QConfig):
+    themeMode = OptionsConfigItem("Theme", "ThemeMode", Theme.LIGHT, OptionsValidator(Theme), serializer=lambda x: x.value)
+    windowEffect = OptionsConfigItem("Theme", "WindowEffect", "Mica", OptionsValidator(["Mica", "Acrylic", "None"]), serializer=lambda x: x)
+
+cfg = Config()
 
 
 class Widget(QFrame):
@@ -21,6 +30,69 @@ class Widget(QFrame):
         self.hBoxLayout = QHBoxLayout(self)
         self.hBoxLayout.addWidget(self.label, 1, Qt.AlignCenter)
         self.setObjectName(text.replace(' ', '-'))
+
+
+class SettingInterface(ScrollArea):
+    """ Setting interface """
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        self.scrollWidget = QWidget()
+        self.expandLayout = ExpandLayout(self.scrollWidget)
+        self.setObjectName("setting-interface")
+
+        # Init layout
+        self.setWidget(self.scrollWidget)
+        self.setWidgetResizable(True)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.viewport().setObjectName("viewport")
+        self.scrollWidget.setObjectName("scrollWidget")
+
+        # Personalization
+        self.personalGroup = SettingCardGroup("Personalization", self.scrollWidget)
+        self.expandLayout.addWidget(self.personalGroup)
+
+        # Theme
+        self.themeCard = OptionsSettingCard(
+            cfg.themeMode,
+            FIF.BRUSH,
+            'Application Theme',
+            "Change the appearance of your application",
+            texts=["Light", "Dark", "Use system setting"],
+            parent=self.personalGroup
+        )
+        self.personalGroup.addSettingCard(self.themeCard)
+
+        # Effect
+        self.effectCard = OptionsSettingCard(
+            cfg.windowEffect,
+            FIF.TRANSPARENT,
+            'Window Effect',
+            "Switch between Mica, Acrylic or None",
+            texts=["Mica", "Acrylic", "None"],
+            parent=self.personalGroup
+        )
+        self.personalGroup.addSettingCard(self.effectCard)
+
+        # Connect
+        cfg.themeMode.valueChanged.connect(setTheme)
+        cfg.windowEffect.valueChanged.connect(self.onWindowEffectChanged)
+        
+        # Set background transparent to show effect
+        self.setStyleSheet("QWidget{background: transparent}")
+
+    def onWindowEffectChanged(self, effect):
+        window = self.window()
+        if not isinstance(window, FluentWindow):
+            return
+
+        if effect == "Mica":
+            window.setMicaEffectEnabled(True)
+        elif effect == "Acrylic":
+            window.setAcrylicEffectEnabled(True)
+        else:
+            window.setMicaEffectEnabled(False)
+            window.setAcrylicEffectEnabled(False)
 
 
 class SearchInterface(DrawerWindow):
@@ -78,7 +150,7 @@ class Window(FluentWindow):
         self.musicInterface = Widget('Music Interface', self)
         self.videoInterface = Widget('Video Interface', self)
         self.folderInterface = Widget('Folder Interface', self)
-        self.settingInterface = Widget('Setting Interface', self)
+        self.settingInterface = SettingInterface(self)
 
         # add items to navigation interface
         self.initNavigation()
