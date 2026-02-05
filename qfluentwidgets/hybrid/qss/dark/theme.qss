@@ -1,0 +1,11 @@
+QObject[theme="Dark"] {
+    qproperty-background: #202020;
+    qproperty-surface: #2d2d2d;
+    qproperty-surfaceHighlight: #3b3b3b;
+    qproperty-text: #ffffff;
+    qproperty-textSecondary: #cccccc;
+    qproperty-hover: #10ffffff;
+    qproperty-pressed: #08ffffff;
+    qproperty-border: #3b3b3b;
+    qproperty-accent: #76b9ed;
+}

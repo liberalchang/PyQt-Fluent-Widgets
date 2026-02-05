@@ -1,8 +1,8 @@
 架构概览
 ========
 
-PySide6-Fluent-Widgets 采用模块化设计，将不同功能的组件分别组织在不同的模块中。
-这种设计使得代码结构清晰，便于维护和扩展。
+PySide6-Fluent-Widgets 是一个基于 PySide6 的现代化 UI 组件库，采用模块化设计架构。
+本文档详细介绍项目的整体架构、模块组织和设计原则。
 
 整体架构
 --------
@@ -10,254 +10,323 @@ PySide6-Fluent-Widgets 采用模块化设计，将不同功能的组件分别组
 .. code-block:: text
 
    qfluentwidgets/
-   ├── __init__.py              # 主入口文件
-   ├── common/                  # 通用工具和基础类
-   │   ├── animation.py         # 动画相关
-   │   ├── color.py            # 颜色管理
-   │   ├── config.py           # 配置管理
-   │   ├── icon.py             # 图标管理
-   │   ├── style_sheet.py      # 样式表
-   │   └── ...
-   ├── components/             # UI 组件
-   │   ├── widgets/            # 基础控件
-   │   ├── navigation/         # 导航组件
-   │   ├── dialog_box/         # 对话框
-   │   ├── settings/           # 设置组件
-   │   ├── material/           # 材质设计组件
-   │   ├── charts/             # 图表组件
-   │   ├── date_time/          # 日期时间组件
-   │   ├── layout/             # 布局组件
-   │   └── vispy/              # 2D/3D 可视化组件
-   ├── window/                 # 窗口相关
-   │   ├── fluent_window.py    # Fluent 风格窗口
-   │   ├── drawer_window.py    # 抽屉窗口
-   │   └── ...
-   ├── multimedia/             # 多媒体组件
-   └── _rc/                    # 资源文件
+   ├── __init__.py                 # 主入口文件，导出所有公共API
+   ├── common/                     # 通用工具和基础类
+   │   ├── animation.py            # 动画引擎和过渡效果
+   │   ├── auto_wrap.py           # 自动文本换行
+   │   ├── chart_resource.py      # 图表资源管理
+   │   ├── color.py               # 颜色管理和主题色彩系统
+   │   ├── config.py              # 配置文件管理和设置
+   │   ├── exception_handler.py   # 异常处理机制
+   │   ├── font.py                # 字体管理和加载
+   │   ├── icon.py                # 图标加载和管理系统
+   │   ├── image_utils.py         # 图像处理工具
+   │   ├── overload.py            # 函数重载装饰器
+   │   ├── router.py              # 路由管理
+   │   ├── screen.py              # 屏幕信息获取
+   │   ├── smooth_scroll.py        # 平滑滚动实现
+   │   ├── style_sheet.py         # QSS 样式表管理
+   │   ├── theme_listener.py       # 主题变化监听
+   │   └── translator.py          # 国际化翻译支持
+   ├── components/                 # 核心 UI 组件模块
+   │   ├── widgets/               # 基础控件 (38个文件)
+   │   ├── navigation/            # 导航组件 (11个文件)
+   │   ├── dialog_box/            # 对话框组件 (11个文件)
+   │   ├── settings/              # 设置组件 (8个文件)
+   │   ├── material/              # 材质设计组件 (6个文件)
+   │   ├── charts/                # 图表组件 (2个文件)
+   │   ├── date_time/             # 日期时间组件 (6个文件)
+   │   ├── layout/                # 布局组件 (5个文件)
+   │   └── vispy/                 # 2D/3D 可视化组件 (14个文件)
+   ├── window/                     # 窗口相关组件 (5个文件)
+   ├── multimedia/                 # 多媒体组件 (4个文件)
+   ├── hybrid/                     # 混合开发支持 (6个文件)
+   └── _rc/                        # 资源文件 (2个文件)
 
-模块说明
---------
+模块详细说明
+------------
 
-common 模块
------------
+common 模块 - 基础设施
+~~~~~~~~~~~~~~~~~~~~~~~
 
-通用模块提供了整个组件库的基础功能，包括：
+通用模块提供了整个组件库的基础设施和工具：
 
-* **animation.py**: 动画引擎和过渡效果
+**核心功能模块**:
+
+* **animation.py**: 动画引擎，提供平滑的过渡效果和动画
+  - `AnimationBase`: 动画基类
+  - `FluentAnimation`: Fluent 风格动画
+  - 支持平移、缩放、透明度、旋转等动画效果
+
 * **color.py**: 颜色管理和主题色彩系统
-* **config.py**: 配置文件管理和设置
-* **icon.py**: 图标加载和管理
+  - `ThemeColor`: 主题颜色管理
+  - 支持亮色/暗色主题自动切换
+  - 提供标准 Fluent Design 色彩
+
+* **config.py**: 配置管理系统
+  - `qconfig`: 全局配置对象
+  - 支持主题、颜色、字体等配置
+  - 配置持久化和自动加载
+
+* **icon.py**: 图标管理系统
+  - `FluentIcon`: 内置图标集合
+  - 支持多尺寸和主题适配
+  - 图标缓存和按需加载
+
 * **style_sheet.py**: QSS 样式表管理
+  - `FluentStyleSheet`: 样式表管理器
+  - 支持动态样式切换
+  - 主题样式自动应用
+
 * **font.py**: 字体管理
+  - 系统字体检测和加载
+  - 支持自定义字体配置
+  - 字体回退机制
+
+**工具模块**:
+
+* **smooth_scroll.py**: 平滑滚动实现
+  - `SmoothScroll`: 平滑滚动引擎
+  - 支持自适应和固定步长模式
+  - 优化的滚动性能
+
 * **theme_listener.py**: 主题变化监听
+  - 实时主题变化检测
+  - 自动样式更新机制
+  - 支持自定义主题监听器
 
-components 模块
----------------
+components 模块 - UI 组件核心
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-这是核心的 UI 组件模块，按功能分类：
+这是项目的核心模块，包含所有 UI 组件，按功能域组织：
 
-widgets 子模块
-~~~~~~~~~~~~~~
+**widgets 子模块 - 基础控件** (38个文件)
 
-基础控件，包括：
+包含最常用的基础 UI 控件：
 
-* **PushButton**: 按钮组件
-* **PrimaryPushButton**: 主要按钮
-* **DropDownButton**: 下拉按钮
-* **HyperlinkButton**: 超链接按钮
-* **RadioButton**: 单选按钮
-* **CheckBox**: 复选框
-* **Switch**: 开关
-* **Slider**: 滑块
-* **ProgressBar**: 进度条
-* **ProgressRing**: 环形进度条
-* **LineEdit**: 输入框
-* **TextEdit**: 文本编辑器
-* **SpinBox**: 数值输入框
-* **ComboBox**: 下拉框
-* **ListView**: 列表视图
-* **TableView**: 表格视图
+* **按钮组件族**: 
+  - `PushButton`: 基础按钮
+  - `PrimaryPushButton`: 主要按钮
+  - `DropDownPushButton`: 下拉按钮
+  - `ToggleButton`: 切换按钮
+  - `HyperlinkButton`: 超链接按钮
+  - `PillPushButton`: 胶囊按钮
+  - 等 23 种按钮变体
 
-navigation 子模块
-~~~~~~~~~~~~~~~~~
+* **输入组件族**:
+  - `LineEdit`: 单行输入框
+  - `LabelLineEdit`: 带标签输入框
+  - `SearchLineEdit`: 搜索输入框
+  - `PasswordLineEdit`: 密码输入框
+  - `TextEdit`: 多行文本编辑器
+  - `ComboBox`: 下拉框
+  - `SpinBox`: 数值输入框
 
-导航相关组件：
+* **显示组件族**:
+  - `Label`: 标签组件族 (11种变体)
+  - `CardWidget`: 卡片组件族 (6种变体)
+  - `IconWidget`: 图标组件
 
-* **Pivot**: 透视导航
-* **Segmented**: 分段控件
+* **进度组件族**:
+  - `ProgressBar`: 进度条
+  - `ProgressRing`: 环形进度条
+  - `IndeterminateProgressBar`: 不确定进度条
+  - `IndeterminateProgressRing`: 不确定环形进度
+
+* **列表和表格**:
+  - `ListView`: 列表视图
+  - `TableView`: 表格视图
+  - `SortableTableView`: 可排序表格
+  - `TreeView`: 树形视图
+
+**navigation 子模块 - 导航组件** (11个文件)
+
+提供应用导航和布局相关的组件：
+
+* **NavigationInterface**: 完整的导航界面框架
+* **Pivot**: 透视导航，类似标签页
 * **Breadcrumb**: 面包屑导航
-* **TabBar**: 标签栏
-* **NavigationInterface**: 导航界面
+* **SegmentedWidget**: 分段控件
+* **NavigationPanel**: 可折叠的导航面板
 
-dialog_box 子模块
-~~~~~~~~~~~~~~~~~
+**dialog_box 子模块 - 对话框组件** (11个文件)
 
-对话框组件：
+提供各种对话框和选择器：
 
-* **MessageBox**: 消息框
-* **FileDialog**: 文件对话框
 * **ColorDialog**: 颜色选择对话框
-* **FolderListDialog**: 文件夹列表对话框
+* **MessageBox**: 消息框
+* **FolderListDialog`: 文件夹列表对话框
+* **ColorPalette`: 颜色面板
+* **ScreenColorPicker`: 屏幕颜色选择器
 
-settings 子模块
-~~~~~~~~~~~~~~~~
+**其他专业模块**:
 
-设置相关组件：
+* **settings**: 设置相关组件 (8个文件)
+* **material**: 材质设计组件 (6个文件)  
+* **charts**: 图表组件 (2个文件)
+* **date_time**: 日期时间组件 (6个文件)
+* **layout**: 布局组件 (5个文件)
+* **vispy**: 2D/3D 可视化组件 (14个文件)
 
-* **SettingCard**: 设置卡片
-* **SwitchSettingCard**: 开关设置卡片
-* **RangeSettingCard**: 范围设置卡片
-* **ComboBoxSettingCard**: 下拉设置卡片
-* **GroupSettingCard**: 分组设置卡片
+window 模块 - 窗口框架
+~~~~~~~~~~~~~~~~~~~~~~~
 
-material 子模块
-~~~~~~~~~~~~~~~~
-
-材质设计组件：
-
-* **AcrylicLabel**: 亚克力标签
-* **AcrylicBrush**: 亚克力画笔
-* **ElevationEffect**: 高度效果
-
-charts 子模块
-~~~~~~~~~~~~~~
-
-图表组件：
-
-* **ChartView**: 图表视图
-* **LineChart**: 折线图
-* **BarChart**: 柱状图
-* **PieChart**: 饼图
-
-date_time 子模块
-~~~~~~~~~~~~~~~~~
-
-日期时间组件：
-
-* **Calendar**: 日历
-* **DatePicker**: 日期选择器
-* **TimePicker**: 时间选择器
-
-layout 子模块
-~~~~~~~~~~~~~~
-
-布局组件：
-
-* **FlowLayout**: 流式布局
-* **VBoxLayout**: 垂直布局
-* **HBoxLayout**: 水平布局
-
-vispy 子模块
-~~~~~~~~~~~~
-
-2D/3D 可视化组件：
-
-* **VispyWidget2D**: 2D 可视化组件
-* **VispyWidget3D**: 3D 可视化组件
-* **PointCloudViewer**: 点云查看器
-
-window 模块
------------
-
-窗口相关组件：
+提供应用窗口和框架组件：
 
 * **FluentWindow**: Fluent 风格主窗口
-* **DrawerWindow**: 带抽屉的窗口
-* **SplashScreen**: 启动画面
-* **StackedWidget**: 堆叠窗口组件
+  - 集成标题栏、菜单栏、工具栏
+  - 支持窗口状态管理
+  - 自适应主题变化
 
-multimedia 模块
----------------
+* **DrawerWindow**: 带侧边抽屉的窗口
+* **SplashScreen**: 应用启动画面
+* **StackedWidget`: 窗口堆叠管理
 
-多媒体相关组件：
+multimedia 模块 - 多媒体支持
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* **MediaPlayer**: 媒体播放器
-* **MediaPlayBar**: 媒体播放控制栏
+提供媒体播放和处理功能：
 
-设计原则
---------
+* **MediaPlayer**: 媒体播放器核心
+* **MediaPlayBar`: 播放控制栏
+* **VideoWidget`: 视频显示组件
 
-1. **模块化**: 按功能划分模块，降低耦合度
-2. **一致性**: 统一的 API 设计和命名规范
-3. **可扩展**: 支持自定义样式和行为
-4. **性能**: 优化渲染性能，减少资源占用
-5. **可访问性**: 支持键盘导航和屏幕阅读器
+hybrid 模块 - 混合开发
+~~~~~~~~~~~~~~~~~~~~~~
 
-主题系统
---------
+支持 PySide6 与 QML 混合开发：
 
-PySide6-Fluent-Widgets 采用基于 QSS 的主题系统：
+* **FluentHybridWindow`: 混合开发窗口
+* **CommunicationBridge`: PySide6-QML 通信桥
+* **QMLManager`: QML 资源管理器
 
-* **亮色主题**: 适合白天使用
-* **暗色主题**: 适合夜间使用  
-* **自动主题**: 跟随系统主题设置
-* **自定义主题**: 支持用户自定义颜色方案
+设计原则和架构特点
+------------------
 
-主题配置通过 `common/config.py` 中的 `qconfig` 类管理：
+**1. 模块化设计**
+* 按功能域清晰划分模块
+* 低耦合，高内聚
+* 支持按需导入和加载
+
+**2. 分层架构**
+```
+应用层 (用户代码)
+    ↓
+组件层 (components/)
+    ↓  
+基础层 (common/)
+    ↓
+系统层 (PySide6/Qt)
+```
+
+**3. 统一的 API 设计**
+* 一致的命名规范
+* 统一的参数接口
+* 标准的信号槽机制
+
+**4. 主题系统集成**
+* 自动主题检测
+* 动态样式切换
+* 组件级主题适配
+
+**5. 国际化支持**
+* 内置中文本地化
+* 可扩展的语言系统
+* 自动文本方向适配
+
+性能优化策略
+------------
+
+**1. 渲染优化**
+* 使用硬件加速
+* 批量样式更新
+* 智能重绘机制
+
+**2. 内存管理**
+* 延迟加载组件
+* 图标和资源缓存
+* 自动垃圾回收
+
+**3. 事件处理**
+* 事件队列优化
+* 防抖和节流
+* 异步事件处理
+
+扩展和自定义
+------------
+
+**添加新组件的标准流程**:
+
+1. **选择合适的模块**: 根据组件功能选择对应目录
+2. **继承基类**: 选择合适的基础类继承
+3. **实现接口**: 实现必要的方法和信号
+4. **添加样式**: 在 FluentStyleSheet 中添加样式定义
+5. **导出组件**: 在模块的 `__init__.py` 中导出
+6. **编写文档**: 添加 docstring 和使用示例
+
+**自定义样式示例**:
 
 .. code-block:: python
 
-   from qfluentwidgets import qconfig, Theme, setTheme
-
-   # 获取当前主题
-   current_theme = qconfig.theme
-
-   # 设置主题
-   setTheme(Theme.DARK)
-
-   # 设置主题色
-   qconfig.set('theme_color', '#0078d4')
-
-国际化支持
-----------
-
-组件库支持多语言，通过 `common/translator.py` 实现：
-
-.. code-block:: python
-
-   from qfluentwidgets import FluentIcon, setTheme, isDarkTheme
-
-   # 图标会根据主题自动切换
-   icon = FluentIcon.SETTING
-
-扩展开发
---------
-
-如何添加新组件：
-
-1. 在对应的模块目录下创建新的组件文件
-2. 继承适当的基础类
-3. 实现必要的虚函数
-4. 添加中文文档字符串
-5. 在 `__init__.py` 中导出新组件
-
-示例：
-
-.. code-block:: python
-
-   from PySide6.QtWidgets import QWidget
-   from qfluentwidgets.common.style_sheet import FluentStyleSheet
-
-   class CustomWidget(QWidget):
-       """自定义组件"""
+   from qfluentwidgets import PushButton, FluentStyleSheet
+   
+   # 创建自定义按钮
+   custom_button = PushButton('自定义按钮')
+   
+   # 应用自定义样式
+   custom_button.setStyleSheet("""
+       PushButton {
+           background-color: #0078d4;
+           color: white;
+           border: none;
+           border-radius: 6px;
+           padding:8px 16px;
+           font-weight: 500;
+       }
        
-       def __init__(self, parent=None):
-           super().__init__(parent)
-           # 初始化代码
-           FluentStyleSheet.CUSTOM_WIDGET.apply(self)
+       PushButton:hover {
+           background-color: #106ebe;
+           transform: translateY(-1px);
+       }
+       
+       PushButton:pressed {
+           background-color: #005a9e;
+           transform: translateY(0px);
+       }
+   """)
 
-性能优化
---------
+测试和质量保证
+------------
 
-* **延迟加载**: 组件按需创建
-* **缓存机制**: 图标和样式缓存
-* **批量更新**: 减少重绘次数
-* **内存管理**: 及时释放不需要的资源
+**测试架构**:
+* 单元测试：每个组件的基本功能
+* 集成测试：组件间交互
+* UI 测试：界面渲染和用户交互
+* 性能测试：内存使用和渲染性能
 
-测试策略
---------
+**代码质量**:
+* 类型注解覆盖
+* 文档字符串规范
+* 代码风格统一
+* 静态分析检查
 
-* **单元测试**: 每个组件的基本功能测试
-* **集成测试**: 组件间交互测试
-* **UI 测试**: 界面渲染和交互测试
-* **性能测试**: 渲染性能和内存使用测试
+版本兼容性
+------------
+
+* **PySide6**: 主要支持平台
+* **Python 3.8+**: 最低版本要求
+* **跨平台**: Windows, macOS, Linux
+* **向后兼容**: API 稳定性保证
+
+总结
+----
+
+PySide6-Fluent-Widgets 采用现代软件架构设计原则，提供了：
+
+* **105个组件文件** 的完整 UI 组件库
+* **模块化架构** 便于维护和扩展
+* **统一的设计语言** 确保视觉一致性
+* **完善的主题系统** 支持个性化定制
+* **丰富的文档** 降低学习成本
+
+这种架构设计使得组件库既保持了高性能，又提供了良好的开发体验，是构建现代化桌面应用的理想选择。

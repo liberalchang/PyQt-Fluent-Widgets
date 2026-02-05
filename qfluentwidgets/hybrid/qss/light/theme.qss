@@ -1,0 +1,11 @@
+QObject[theme="Light"] {
+    qproperty-background: #f3f3f3;
+    qproperty-surface: #ffffff;
+    qproperty-surfaceHighlight: #e5e5e5;
+    qproperty-text: #000000;
+    qproperty-textSecondary: #666666;
+    qproperty-hover: #10000000;
+    qproperty-pressed: #08000000;
+    qproperty-border: #e5e5e5;
+    qproperty-accent: #009faa;
+}

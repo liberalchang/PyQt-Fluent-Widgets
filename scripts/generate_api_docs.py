@@ -24,40 +24,35 @@ def generate_api_docs():
     
     print(f"正在扫描 qfluentwidgets 包: {qfluentwidgets_path}")
     
-    # 扫描主要模块
-    modules = [
-        "qfluentwidgets",
-        "qfluentwidgets.common",
-        "qfluentwidgets.components", 
-        "qfluentwidgets.window",
-        "qfluentwidgets.multimedia"
+    # 生成 API 文档的目录
+    api_source_path = project_root / "docs" / "source" / "api"
+    api_source_path.mkdir(exist_ok=True)
+    
+    # 使用 sphinx-apidoc 生成 API 文档
+    import subprocess
+    
+    cmd = [
+        "sphinx-apidoc",
+        "-f",  # 强制覆盖
+        "-o", str(api_source_path),  # 输出目录
+        str(qfluentwidgets_path),  # 源目录
+        "--module-first",  # 按模块优先排序
+        "--separate",  # 为每个模块创建单独的文件
     ]
     
-    # 扫描子模块
-    submodules = []
-    for module in modules:
-        module_path = qfluentwidgets_path / module.replace("qfluentwidgets.", "")
-        if module_path.is_dir():
-            for item in module_path.iterdir():
-                if item.is_file() and item.suffix == '.py' and item.name != '__init__.py':
-                    submodules.append(f"{module}.{item.stem}")
-                elif item.is_dir() and (item / '__init__.py').exists():
-                    submodules.append(f"{module}.{item.name}")
+    print(f"执行命令: {' '.join(cmd)}")
     
-    all_modules = modules + submodules
-    
-    print(f"发现 {len(all_modules)} 个模块")
-    
-    # 生成 API 文档
-    docs_source_path = project_root / "docs" / "source"
-    
-    for module in all_modules:
-        try:
-            # 尝试导入模块以验证其存在性
-            __import__(module)
-            print(f"✓ {module}")
-        except ImportError as e:
-            print(f"✗ {module}: {e}")
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8')
+        if result.returncode == 0:
+            print("API 文档生成成功")
+            print(result.stdout)
+        else:
+            print(f"API 文档生成失败: {result.stderr}")
+            return False
+    except Exception as e:
+        print(f"执行 sphinx-apidoc 时出错: {e}")
+        return False
     
     return True
 

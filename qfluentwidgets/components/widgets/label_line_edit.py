@@ -1,7 +1,6 @@
 # coding: utf-8
 from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import Qt
-from ...common.config import qconfig, Theme
 from ...common.style_sheet import FluentStyleSheet, addStyleSheet
 from .line_edit import LineEdit
 

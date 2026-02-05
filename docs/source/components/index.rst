@@ -7,16 +7,50 @@
    :maxdepth: 2
    :caption: 组件指南
 
+   animation
+   auto_wrap
+   chart_resource
+   color
+   config
+   exception_handler
+   font
+   icon
+   image_utils
+   overload
+   router
+   screen
+   smooth_scroll
+   style_sheet
+   theme_listener
+   translator
+   echarts_widget
+   calendar_picker
+   calendar_view
+   date_picker
+   fast_calendar_view
+   picker_base
+   time_picker
+   circle_color_picker
+   color_dialog
+   color_palette
+   color_picker_button
+   dialog
+   folder_list_dialog
+   mask_dialog_base
+   message_box_base
+   message_dialog
+   screen_color_picker
+   expand_layout
    widgets_complete
    navigation_complete
-   dialog_box
+   dialog_box_complete
    settings
-   material
-   charts
-   date_time
-   layout
-   vispy
-   multimedia
+   material_complete
+   charts_complete
+   date_time_complete
+   layout_complete
+   vispy_complete
+   multimedia_complete
    table
    window
 

@@ -14,5 +14,6 @@ Subpackages
 
    qfluentwidgets.common
    qfluentwidgets.components
+   qfluentwidgets.hybrid
    qfluentwidgets.multimedia
    qfluentwidgets.window

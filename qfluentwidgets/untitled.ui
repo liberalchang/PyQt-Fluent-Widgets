@@ -28,6 +28,7 @@
  </widget>
  <resources>
   <include location="_rc/resource.qrc"/>
+  <include location="hybrid/resource_qml.qrc"/>
  </resources>
  <connections/>
 </ui>

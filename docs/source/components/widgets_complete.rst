@@ -131,6 +131,26 @@ PasswordLineEdit
    password_edit = PasswordLineEdit()
    password_edit.setEchoMode(LineEdit.Password)
 
+LabelLineEdit
+~~~~~~~~~~~~~~
+带前缀和后缀标签的输入框。
+
+.. code-block:: python
+
+   # 创建带前缀和后缀的输入框
+   labeled_edit = LabelLineEdit(prefix='用户名:', suffix='@example.com')
+   
+   # 或者分别设置
+   labeled_edit = LabelLineEdit()
+   labeled_edit.setPrefix('用户名:')
+   labeled_edit.setSuffix('@example.com')
+   
+   # 设置标签文本
+   labeled_edit.setLabel('标签:')
+   
+   # 连接信号
+   labeled_edit.textChanged.connect(lambda text: print(f'输入内容: {text}'))
+
 TextEdit
 ~~~~~~~~
 多行文本编辑器。
@@ -866,20 +886,27 @@ ToolTip
            input_row1.addWidget(SearchLineEdit())
            group_layout.addLayout(input_row1)
            
-           # 选择组件行
+           # 标签输入框行
            input_row2 = QHBoxLayout()
-           input_row2.addWidget(QLabel('下拉框:'))
-           input_row2.addWidget(ComboBox())
-           input_row2.addWidget(QLabel('数值框:'))
-           input_row2.addWidget(SpinBox())
+           input_row2.addWidget(QLabel('标签输入框:'))
+           labeled_edit = LabelLineEdit(prefix='用户名:', suffix='@example.com')
+           input_row2.addWidget(labeled_edit)
            group_layout.addLayout(input_row2)
            
-           # 复选框行
+           # 选择组件行
            input_row3 = QHBoxLayout()
-           input_row3.addWidget(CheckBox('复选框'))
-           input_row3.addWidget(RadioButton('单选框'))
-           input_row3.addWidget(SwitchButton())
+           input_row3.addWidget(QLabel('下拉框:'))
+           input_row3.addWidget(ComboBox())
+           input_row3.addWidget(QLabel('数值框:'))
+           input_row3.addWidget(SpinBox())
            group_layout.addLayout(input_row3)
+           
+           # 复选框行
+           input_row4 = QHBoxLayout()
+           input_row4.addWidget(CheckBox('复选框'))
+           input_row4.addWidget(RadioButton('单选框'))
+           input_row4.addWidget(SwitchButton())
+           group_layout.addLayout(input_row4)
            
            layout.addWidget(group)
 
