@@ -22,6 +22,7 @@ class CommunicationBridge(QObject):
     styleChanged = Signal()
     currentRouteChanged = Signal(str)
     windowEffectChanged = Signal(str)  # "Mica" | "Acrylic" | "None"
+    transitionDurationChanged = Signal(int)  # 主题过渡动画时长（毫秒）
 
     # Pre-build icon map for O(1) lookup
     _ICON_MAP = {i.value: i for i in AntDesignIcon}
@@ -35,6 +36,7 @@ class CommunicationBridge(QObject):
         self._isMaximized = False
         self._currentRoute = ""
         self._windowEffect = "None"
+        self._transitionDurationMs = 600
 
     def getIsMaximized(self):
         return self._isMaximized
@@ -89,6 +91,17 @@ class CommunicationBridge(QObject):
         self.windowEffectChanged.emit(effect)
 
     windowEffect = Property(str, getWindowEffect, setWindowEffect, notify=windowEffectChanged)
+
+    def getTransitionDurationMs(self):
+        return self._transitionDurationMs
+
+    def setTransitionDurationMs(self, ms):
+        if self._transitionDurationMs == ms:
+            return
+        self._transitionDurationMs = int(ms)
+        self.transitionDurationChanged.emit(self._transitionDurationMs)
+
+    transitionDurationMs = Property(int, getTransitionDurationMs, setTransitionDurationMs, notify=transitionDurationChanged)
 
     @Slot()
     def requestMenuToggle(self):

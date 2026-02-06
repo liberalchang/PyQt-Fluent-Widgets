@@ -71,6 +71,13 @@
    drawing_canvas
    drawing_visuals
    drawing_widget
+   interaction_manager
+   layer_manager
+   selection_manager
+   drawing_view
+   vispy_canvas
+   vispy_visuals
+   vispy_widget
    widgets_complete
    navigation_complete
    dialog_box_complete

@@ -13,7 +13,10 @@ Rectangle {
     property string safeTheme: safeBridge ? safeBridge.theme : "Light"
     property bool safeIsMaximized: safeBridge ? safeBridge.isMaximized : false
     property string safeWindowEffect: safeBridge ? safeBridge.windowEffect : "None"
-    color: (safeWindowEffect === "Mica" || safeWindowEffect === "Acrylic") ? "transparent" : safeStyle.surface
+    property real revealProgress: 1
+    property color _bgOldColor: safeStyle.surface
+    property color _bgNewColor: safeStyle.surface
+    color: "transparent"
 
     property point lastPos: Qt.point(0, 0)
     property string appTitle: Qt.application.displayName && Qt.application.displayName.length > 0
@@ -21,6 +24,24 @@ Rectangle {
         : (Qt.application.name && Qt.application.name.length > 0 ? Qt.application.name : "Application")
 
     children: [
+        Item {
+            anchors.fill: parent
+            visible: safeWindowEffect === "None" || revealProgress < 1
+            z: 0
+            children: [
+                Rectangle {
+                    anchors.fill: parent
+                    color: _bgOldColor
+                },
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    width: parent.width * revealProgress
+                    height: parent.height
+                    color: _bgNewColor
+                }
+            ]
+        },
         MouseArea {
             id: dragArea
             anchors.fill: parent
@@ -38,11 +59,11 @@ Rectangle {
                     safeBridge.requestWindowMaximize()
                 }
             }
-            z: 0
+            z: 1
         },
         Item {
             anchors.fill: parent
-            z: 1
+            z: 2
 
             children: [
                 Text {
@@ -207,4 +228,19 @@ Rectangle {
             ]
         }
     ]
+
+    NumberAnimation on revealProgress {
+        id: titleAnim
+        duration: safeBridge ? safeBridge.transitionDurationMs : 600
+        from: 0
+        to: 1
+        easing.type: Easing.OutCubic
+    }
+
+    onSafeStyleChanged: {
+        _bgOldColor = _bgNewColor
+        _bgNewColor = safeStyle.surface
+        revealProgress = 0
+        titleAnim.start()
+    }
 }

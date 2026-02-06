@@ -18,10 +18,31 @@ Rectangle {
     property string safeTheme: safeBridge ? safeBridge.theme : "Light"
     property string safeWindowEffect: safeBridge ? safeBridge.windowEffect : "None"
     property string currentRoute: safeBridge ? safeBridge.currentRoute : ""
+    property real revealProgress: 1
+    property color _bgOldColor: safeStyle.background
+    property color _bgNewColor: safeStyle.background
 
-    color: (safeWindowEffect === "Mica" || safeWindowEffect === "Acrylic") ? "transparent" : safeStyle.background
+    color: "transparent"
     
     children: [
+        Item {
+            anchors.fill: parent
+            visible: safeWindowEffect === "None" || revealProgress < 1
+            z: 0
+            children: [
+                Rectangle {
+                    anchors.fill: parent
+                    color: _bgOldColor
+                },
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    width: parent.width
+                    height: parent.height * revealProgress
+                    color: _bgNewColor
+                }
+            ]
+        },
         Item {
             id: header
             height: 48
@@ -31,6 +52,7 @@ Rectangle {
             anchors.leftMargin: edgeMargin
             anchors.rightMargin: edgeMargin
             anchors.topMargin: edgeMargin
+            z: 1
             children: [
                 Item {
                     id: hamburger
@@ -95,6 +117,7 @@ Rectangle {
             interactive: false
             model: navItems
             spacing: 8
+            z: 1
 
             delegate: NavigationItem {
                 property string itemPosition: modelData.position ? modelData.position : "scroll"
@@ -122,6 +145,7 @@ Rectangle {
             height: 1
             color: safeStyle.border
             visible: topList.contentHeight > 0
+            z: 1
         },
 
         ListView {
@@ -137,6 +161,7 @@ Rectangle {
             interactive: false
             model: navItems
             spacing: 8
+            z: 1
 
             delegate: NavigationItem {
                 property string itemPosition: modelData.position ? modelData.position : "scroll"
@@ -166,6 +191,7 @@ Rectangle {
             clip: true
             model: navItems
             spacing: 8
+            z: 1
 
             delegate: NavigationItem {
                 property string itemPosition: modelData.position ? modelData.position : "scroll"
@@ -184,4 +210,19 @@ Rectangle {
             }
         }
     ]
+
+    NumberAnimation on revealProgress {
+        id: sideAnim
+        duration: safeBridge ? safeBridge.transitionDurationMs : 600
+        from: 0
+        to: 1
+        easing.type: Easing.OutCubic
+    }
+    
+    onSafeStyleChanged: {
+        _bgOldColor = _bgNewColor
+        _bgNewColor = safeStyle.background
+        revealProgress = 0
+        sideAnim.start()
+    }
 }

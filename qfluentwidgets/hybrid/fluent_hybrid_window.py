@@ -222,6 +222,8 @@ class FluentHybridWindow(FluentWindowBase):
         
         # Navigation
         self.bridge.menuClicked.connect(self._onMenuClicked)
+        
+        self.bridge.setTransitionDurationMs(600)
 
     def resizeEvent(self, e):
         super().resizeEvent(e)
