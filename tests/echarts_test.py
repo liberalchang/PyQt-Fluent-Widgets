@@ -5,6 +5,7 @@ import random
 import time
 from datetime import datetime
 from PySide6.QtCore import Qt, QTimer, Slot
+from PySide6.QtQuick import QQuickWindow, QSGRendererInterface
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
 # Add project root to path
@@ -144,7 +145,14 @@ if __name__ == '__main__':
     os.environ["QT_SCALE_FACTOR"] = "1.25"
     QApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     
+    if sys.platform.startswith("win"):
+        os.environ.setdefault("QTWEBENGINE_DISABLE_GPU", "1")
+        QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.Software)
+
     app = QApplication(sys.argv)
     w = Window()
     w.show()
+    auto_close_ms = int(os.getenv("QFW_AUTO_CLOSE_MS", "0") or 0)
+    if auto_close_ms > 0:
+        QTimer.singleShot(auto_close_ms, app.quit)
     sys.exit(app.exec())

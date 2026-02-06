@@ -3,6 +3,7 @@ from typing import List, Union, Optional, Callable
 from dataclasses import dataclass
 from datetime import datetime
 import os
+import sys
 
 from PySide6.QtCore import Qt, QMargins, QModelIndex, QItemSelectionModel, Property, QRectF, QEvent, Signal
 from PySide6.QtGui import QHelpEvent, QPainter, QColor, QKeyEvent, QPalette, QBrush, QIcon, QFont
@@ -10,14 +11,16 @@ from PySide6.QtWidgets import (QAbstractItemView, QStyledItemDelegate, QApplicat
                              QTableView, QTableWidget, QWidget, QTableWidgetItem, QStyle,
                              QStyleOptionButton, QStyleFactory, QHeaderView, QHBoxLayout, QLabel)
 
-from .check_box import CheckBoxIcon
-from ...common.font import getFont
-from ...common.color import autoFallbackThemeColor
-from ...common.style_sheet import isDarkTheme, FluentStyleSheet, updateDynamicStyle, setCustomStyleSheet
-from .line_edit import LineEdit
-from .scroll_bar import SmoothScrollDelegate
-from .tool_tip import ItemViewToolTipDelegate, ItemViewToolTipType
-from ...common.icon import AntDesignIcon as AIF
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from qfluentwidgets.components.widgets.check_box import CheckBoxIcon
+from qfluentwidgets.common.font import getFont
+from qfluentwidgets.common.color import autoFallbackThemeColor
+from qfluentwidgets.common.style_sheet import isDarkTheme, FluentStyleSheet, updateDynamicStyle, setCustomStyleSheet
+from qfluentwidgets.components.widgets.line_edit import LineEdit
+from qfluentwidgets.components.widgets.scroll_bar import SmoothScrollDelegate
+from qfluentwidgets.components.widgets.tool_tip import ItemViewToolTipDelegate, ItemViewToolTipType
+from qfluentwidgets.common.icon import AntDesignIcon as AIF
 
 
 class TableItemDelegate(QStyledItemDelegate):

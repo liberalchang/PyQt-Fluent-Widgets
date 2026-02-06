@@ -5,3 +5,11 @@ qfluentwidgets.components.widgets.icon\_widget module
    :members:
    :show-inheritance:
    :undoc-members:
+
+IconWidget
+----------
+
+.. autoclass:: qfluentwidgets.components.widgets.icon_widget.IconWidget
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -3,6 +3,7 @@
     <file>qml/SideNavigation.qml</file>
     <file>qml/TitleBar.qml</file>
     <file>qml/NavigationItem.qml</file>
+    <file>qml/Splash.qml</file>
   </qresource>
   <qresource prefix="/qss">
     <file>qss/light/theme.qss</file>

@@ -50,6 +50,7 @@
    acrylic_menu
    acrylic_tool_tip
    acrylic_widget
+   acrylic_label
    breadcrumb
    navigation_bar
    navigation_interface
@@ -78,6 +79,7 @@
    vispy_canvas
    vispy_visuals
    vispy_widget
+   button
    widgets_complete
    navigation_complete
    dialog_box_complete
