@@ -107,7 +107,7 @@ This project extends the following capabilities based on the official PySide6 br
 
 ### QML Implementation of FluentWindow
 > Dynamic theme switching
-![QML Implementation of FluentWindow](docs/image/动态效果的qml启动窗口.gif)
+![QML Implementation of FluentWindow](docs/image/FluentWindow的qml实现.gif)
 
 
 ## Dependencies & Installation Suggestions

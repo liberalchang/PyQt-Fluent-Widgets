@@ -106,7 +106,7 @@ python demo.py
 
 ### FluentWindow 的 qml 实现
 > 动态切换主题
-![FluentWindow 的 qml 实现](docs/image/动态效果的qml启动窗口.gif)
+![FluentWindow 的 qml 实现](docs/image/FluentWindow的qml实现.gif)
 
 
 ## 依赖与安装建议
