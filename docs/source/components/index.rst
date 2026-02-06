@@ -41,6 +41,36 @@
    message_dialog
    screen_color_picker
    expand_layout
+   flow_layout
+   splitter
+   v_box_layout
+   acrylic_combo_box
+   acrylic_flyout
+   acrylic_line_edit
+   acrylic_menu
+   acrylic_tool_tip
+   acrylic_widget
+   breadcrumb
+   navigation_bar
+   navigation_interface
+   navigation_panel
+   navigation_widget
+   pivot
+   segmented_widget
+   top_navigation_bar
+   custom_color_setting_card
+   expand_setting_card
+   folder_list_setting_card
+   options_setting_card
+   setting_card
+   setting_card_group
+   vispy
+   vispy_drawing
+   coordinate_system
+   data_models
+   drawing_canvas
+   drawing_visuals
+   drawing_widget
    widgets_complete
    navigation_complete
    dialog_box_complete

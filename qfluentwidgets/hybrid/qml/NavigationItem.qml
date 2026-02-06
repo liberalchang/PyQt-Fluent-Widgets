@@ -3,6 +3,16 @@ import QtQuick 2.15
 Item {
     id: control
 
+    property var safeBridge: bridge
+    property var safeStyle: safeBridge ? safeBridge.style : ({
+        hover: "#22000000",
+        pressed: "#33000000",
+        text: "#1A1A1A",
+        textSecondary: "#666666",
+        accent: "#3C7DFF"
+    })
+    property string safeTheme: safeBridge ? safeBridge.theme : "Light"
+
     property string iconSymbol: ""
     property bool isCompact: false
     property bool isSelected: false
@@ -18,7 +28,7 @@ Item {
     children: [
         Rectangle {
             anchors.fill: parent
-            color: control.pressed ? bridge.style.pressed : (control.hovered ? bridge.style.hover : "transparent")
+            color: control.pressed ? safeStyle.pressed : (control.hovered ? safeStyle.hover : "transparent")
             radius: 4
             children: [
                 Rectangle {
@@ -26,7 +36,7 @@ Item {
                     width: 3
                     height: 16
                     radius: 1.5
-                    color: bridge.style.accent
+                    color: safeStyle.accent
                     anchors.left: parent.left
                     anchors.leftMargin: 0
                     anchors.verticalCenter: parent.verticalCenter
@@ -42,10 +52,10 @@ Item {
             children: [
                 Image {
                     anchors.centerIn: parent
-                    source: "image://FluentIcons/" + control.iconSymbol + "/" + bridge.theme + "/" + (isSelected ? (bridge.style.accent ? bridge.style.accent : bridge.style.text) : bridge.style.text)
-                    width: 16
-                    height: 16
-                    sourceSize: Qt.size(16, 16)
+                    source: "image://FluentIcons/" + control.iconSymbol + "/" + safeTheme + "/" + (isSelected ? (safeStyle.accent ? safeStyle.accent : safeStyle.text) : safeStyle.text)
+                    width: 20
+                    height: 20
+                    sourceSize: Qt.size(20, 20)
                     visible: true
                 }
             ]
@@ -55,7 +65,7 @@ Item {
             visible: !isCompact
             font.family: "Segoe UI Variable Text"
             font.pixelSize: 14
-            color: isSelected ? bridge.style.text : bridge.style.textSecondary
+            color: isSelected ? safeStyle.text : safeStyle.textSecondary
             anchors.left: iconBox.right
             anchors.verticalCenter: parent.verticalCenter
             leftPadding: 0

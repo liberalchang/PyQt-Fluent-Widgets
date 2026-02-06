@@ -8,9 +8,10 @@ from PySide6.QtQuickWidgets import QQuickWidget
 from PySide6.QtQml import QQmlPropertyMap, qmlRegisterType, qmlRegisterSingletonInstance
 
 from qfluentwidgets.window.fluent_window import FluentWindowBase
-from qfluentwidgets.common.config import qconfig, Theme, isDarkTheme
-from qfluentwidgets.common.style_sheet import StyleSheetBase
+from qfluentwidgets.common.config import qconfig, Theme, isDarkTheme, WindowEffect
+from qfluentwidgets.common.style_sheet import StyleSheetBase, setTheme
 from qfluentwidgets.common.icon import FluentIcon, AntDesignIcon
+from qfluentwidgets.components.navigation.navigation_panel import NavigationItemPosition
 
 from .communication_bridge import CommunicationBridge
 from .qml_manager import HybridQml
@@ -119,9 +120,9 @@ class FluentHybridWindow(FluentWindowBase):
         self.titleBarContainer.engine().addImageProvider("FluentIcons", FluentIconImageProvider())
         self.sidebarContainer.engine().addImageProvider("FluentIcons", FluentIconImageProvider())
 
-        # Context Properties - Set on engine().rootContext() explicitly
-        titleCtx = self.titleBarContainer.engine().rootContext()
-        sideCtx = self.sidebarContainer.engine().rootContext()
+        # Context Properties - MUST set on QQuickWidget.rootContext()
+        titleCtx = self.titleBarContainer.rootContext()
+        sideCtx = self.sidebarContainer.rootContext()
         
         print(f"DEBUG: Setting context properties. Bridge: {self.bridge}, StyleMap: {self.styleMap}")
         
@@ -164,6 +165,9 @@ class FluentHybridWindow(FluentWindowBase):
         
         # Initial Theme
         self._onThemeChanged()
+        self._onWindowEffectChanged()
+
+        qconfig.appRestartSig.connect(self._onWindowEffectChanged)
 
     def addSubInterface(self, interface, icon, text, position=None):
         """ Add sub interface """
@@ -173,11 +177,13 @@ class FluentHybridWindow(FluentWindowBase):
         # Add to navItems
         # icon can be FluentIcon enum or string
         iconName = icon.value if hasattr(icon, 'value') else icon
+        itemPosition = self._normalizePosition(position)
         
         item = {
             "routeKey": text,
             "text": text,
-            "icon": iconName
+            "icon": iconName,
+            "position": itemPosition
         }
         self.navigationItems.append(item)
         self.sidebarContainer.rootContext().setContextProperty("navItems", self.navigationItems)
@@ -186,6 +192,19 @@ class FluentHybridWindow(FluentWindowBase):
             if self.bridge:
                 self.bridge.functionWindowChanged.emit(text)
                 self.bridge.setCurrentRoute(text)
+
+    def _normalizePosition(self, position):
+        if isinstance(position, NavigationItemPosition):
+            if position == NavigationItemPosition.TOP:
+                return "top"
+            if position == NavigationItemPosition.BOTTOM:
+                return "bottom"
+            return "scroll"
+        if isinstance(position, str):
+            value = position.lower()
+            if value in ("top", "scroll", "bottom"):
+                return value
+        return "scroll"
 
     def _isHoverMaxBtn(self):
         # Fix AttributeError in FramelessWindow
@@ -219,11 +238,10 @@ class FluentHybridWindow(FluentWindowBase):
         self.bridge.maximizedChanged.emit(self.isMaximized())
 
     def _toggleTheme(self):
-        # Toggle theme via qconfig
         if qconfig.theme == Theme.DARK:
-            qconfig.set(qconfig.themeMode, Theme.LIGHT)
+            setTheme(Theme.LIGHT, save=False)
         else:
-            qconfig.set(qconfig.themeMode, Theme.DARK)
+            setTheme(Theme.DARK, save=False)
 
     def _onThemeChanged(self):
         # Notify QML via Bridge
@@ -238,13 +256,32 @@ class FluentHybridWindow(FluentWindowBase):
         # Update widget background
         color = QColor(32, 32, 32) if isDark else QColor(243, 243, 243)
         self.setBackgroundColor(color)
-        
-        # Process events to ensure QML property updates are propagated
-        QApplication.processEvents()
-        
-        # Force update for QQuickWidget (especially Software backend)
-        self.titleBarContainer.repaint()
-        self.sidebarContainer.repaint()
+        QTimer.singleShot(0, self._refreshQmlSurfaces)
+
+    def _refreshQmlSurfaces(self):
+        try:
+            self.titleBarContainer.update()
+            self.sidebarContainer.update()
+        except Exception:
+            try:
+                self.titleBarContainer.repaint()
+                self.sidebarContainer.repaint()
+            except Exception:
+                pass
+
+    def _onWindowEffectChanged(self):
+        try:
+            effect = qconfig.get(qconfig.windowEffect)
+            self.setWindowEffect(effect)
+            # 同步给 QML：透明处理由 QML 根据此状态决定是否显示背景色
+            if effect == WindowEffect.MICA:
+                self.bridge.setWindowEffect("Mica")
+            elif effect == WindowEffect.ACRYLIC:
+                self.bridge.setWindowEffect("Acrylic")
+            else:
+                self.bridge.setWindowEffect("None")
+        except Exception:
+            pass
 
     def _onMenuClicked(self, routeKey):
         if routeKey == "toggle_sidebar":

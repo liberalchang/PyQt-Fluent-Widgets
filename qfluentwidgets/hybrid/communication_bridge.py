@@ -21,6 +21,7 @@ class CommunicationBridge(QObject):
     maximizedChanged = Signal(bool) # True if maximized
     styleChanged = Signal()
     currentRouteChanged = Signal(str)
+    windowEffectChanged = Signal(str)  # "Mica" | "Acrylic" | "None"
 
     # Pre-build icon map for O(1) lookup
     _ICON_MAP = {i.value: i for i in AntDesignIcon}
@@ -33,6 +34,7 @@ class CommunicationBridge(QObject):
         self._style = {}
         self._isMaximized = False
         self._currentRoute = ""
+        self._windowEffect = "None"
 
     def getIsMaximized(self):
         return self._isMaximized
@@ -76,6 +78,17 @@ class CommunicationBridge(QObject):
         self.currentRouteChanged.emit(routeKey)
 
     currentRoute = Property(str, getCurrentRoute, setCurrentRoute, notify=currentRouteChanged)
+
+    def getWindowEffect(self):
+        return self._windowEffect
+
+    def setWindowEffect(self, effect):
+        if self._windowEffect == effect:
+            return
+        self._windowEffect = effect
+        self.windowEffectChanged.emit(effect)
+
+    windowEffect = Property(str, getWindowEffect, setWindowEffect, notify=windowEffectChanged)
 
     @Slot()
     def requestMenuToggle(self):

@@ -264,6 +264,33 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
             int(self.winId()), dwAttribute, byref(pvAttribute), cbAttribute
         )
 
+    def setWindowCornerPreference(self, preference: str = "round"):
+        if sys.platform != 'win32' or sys.getwindowsversion().build < 22000:
+            return
+
+        from ctypes import c_int, byref, sizeof
+        import ctypes
+
+        mapping = {
+            "default": 0,
+            "donotround": 1,
+            "round": 2,
+            "roundsmall": 3
+        }
+        value = mapping.get(preference.lower(), 2)
+
+        DWMWA_WINDOW_CORNER_PREFERENCE = 33
+        dwAttribute = DWMWA_WINDOW_CORNER_PREFERENCE
+        pvAttribute = c_int(value)
+        cbAttribute = sizeof(pvAttribute)
+
+        ctypes.windll.dwmapi.DwmSetWindowAttribute(
+            int(self.winId()), dwAttribute, byref(pvAttribute), cbAttribute
+        )
+
+    def setRoundedCornersEnabled(self, isEnabled: bool = True):
+        self.setWindowCornerPreference("round" if isEnabled else "donotround")
+
     def setWidgetOpacity(self, widget: QWidget, opacity: float):
         """ set opacity of any widget """
         effect = QGraphicsOpacityEffect(widget)

@@ -3,7 +3,17 @@ import QtQuick 2.15
 Rectangle {
     id: root
     height: 48
-    color: bridge.style.surface
+    property var safeBridge: bridge
+    property var safeStyle: safeBridge ? safeBridge.style : ({
+        surface: "#F3F3F3",
+        hover: "#22000000",
+        pressed: "#33000000",
+        text: "#1A1A1A"
+    })
+    property string safeTheme: safeBridge ? safeBridge.theme : "Light"
+    property bool safeIsMaximized: safeBridge ? safeBridge.isMaximized : false
+    property string safeWindowEffect: safeBridge ? safeBridge.windowEffect : "None"
+    color: (safeWindowEffect === "Mica" || safeWindowEffect === "Acrylic") ? "transparent" : safeStyle.surface
 
     property point lastPos: Qt.point(0, 0)
     property string appTitle: Qt.application.displayName && Qt.application.displayName.length > 0
@@ -15,13 +25,19 @@ Rectangle {
             id: dragArea
             anchors.fill: parent
             acceptedButtons: Qt.LeftButton
-            onPressed: lastPos = Qt.point(mouse.x, mouse.y)
-            onPositionChanged: {
+            onPressed: function(mouse) { lastPos = Qt.point(mouse.x, mouse.y) }
+            onPositionChanged: function(mouse) {
                 if (mouse.buttons & Qt.LeftButton) {
-                    bridge.moveWindow(mouse.x - lastPos.x, mouse.y - lastPos.y)
+                    if (safeBridge) {
+                        safeBridge.moveWindow(mouse.x - lastPos.x, mouse.y - lastPos.y)
+                    }
                 }
             }
-            onDoubleClicked: bridge.requestWindowMaximize()
+            onDoubleClicked: {
+                if (safeBridge) {
+                    safeBridge.requestWindowMaximize()
+                }
+            }
             z: 0
         },
         Item {
@@ -35,7 +51,7 @@ Rectangle {
                     anchors.leftMargin: 20
                     anchors.verticalCenter: parent.verticalCenter
                     text: appTitle
-                    color: bridge.style.text
+                    color: safeStyle.text
                     font.family: "Segoe UI Variable Text"
                     font.pixelSize: 13
                     verticalAlignment: Text.AlignVCenter
@@ -52,11 +68,12 @@ Rectangle {
                     children: [
                         Rectangle {
                             anchors.fill: parent
-                            color: closeButton.pressed ? bridge.style.pressed : (closeButton.hovered ? bridge.style.hover : "transparent")
+                            color: closeButton.pressed ? safeStyle.pressed : (closeButton.hovered ? safeStyle.hover : "transparent")
+                            radius: 4
                         },
                         Image {
                             anchors.centerIn: parent
-                            source: "image://FluentIcons/Close/" + bridge.theme + "/" + bridge.style.text
+                            source: "image://FluentIcons/Close/" + safeTheme + "/" + safeStyle.text
                             width: 12
                             height: 12
                             sourceSize: Qt.size(12, 12)
@@ -69,7 +86,9 @@ Rectangle {
                             onPressed: closeButton.pressed = true
                             onReleased: {
                                 closeButton.pressed = false
-                                bridge.requestWindowClose()
+                                if (safeBridge) {
+                                    safeBridge.requestWindowClose()
+                                }
                             }
                         }
                     ]
@@ -86,11 +105,12 @@ Rectangle {
                     children: [
                         Rectangle {
                             anchors.fill: parent
-                            color: maxButton.pressed ? bridge.style.pressed : (maxButton.hovered ? bridge.style.hover : "transparent")
+                            color: maxButton.pressed ? safeStyle.pressed : (maxButton.hovered ? safeStyle.hover : "transparent")
+                            radius: 4
                         },
                         Image {
                             anchors.centerIn: parent
-                            source: "image://FluentIcons/" + (bridge.isMaximized ? "fullscreen-exit" : "FullScreen") + "/" + bridge.theme + "/" + bridge.style.text
+                            source: "image://FluentIcons/" + (safeIsMaximized ? "fullscreen-exit" : "FullScreen") + "/" + safeTheme + "/" + safeStyle.text
                             width: 12
                             height: 12
                             sourceSize: Qt.size(12, 12)
@@ -103,7 +123,9 @@ Rectangle {
                             onPressed: maxButton.pressed = true
                             onReleased: {
                                 maxButton.pressed = false
-                                bridge.requestWindowMaximize()
+                                if (safeBridge) {
+                                    safeBridge.requestWindowMaximize()
+                                }
                             }
                         }
                     ]
@@ -120,11 +142,12 @@ Rectangle {
                     children: [
                         Rectangle {
                             anchors.fill: parent
-                            color: minButton.pressed ? bridge.style.pressed : (minButton.hovered ? bridge.style.hover : "transparent")
+                            color: minButton.pressed ? safeStyle.pressed : (minButton.hovered ? safeStyle.hover : "transparent")
+                            radius: 4
                         },
                         Image {
                             anchors.centerIn: parent
-                            source: "image://FluentIcons/Minimize/" + bridge.theme + "/" + bridge.style.text
+                            source: "image://FluentIcons/Minimize/" + safeTheme + "/" + safeStyle.text
                             width: 12
                             height: 12
                             sourceSize: Qt.size(12, 12)
@@ -137,7 +160,9 @@ Rectangle {
                             onPressed: minButton.pressed = true
                             onReleased: {
                                 minButton.pressed = false
-                                bridge.requestWindowMinimize()
+                                if (safeBridge) {
+                                    safeBridge.requestWindowMinimize()
+                                }
                             }
                         }
                     ]
@@ -154,11 +179,12 @@ Rectangle {
                     children: [
                         Rectangle {
                             anchors.fill: parent
-                            color: themeButton.pressed ? bridge.style.pressed : (themeButton.hovered ? bridge.style.hover : "transparent")
+                            color: themeButton.pressed ? safeStyle.pressed : (themeButton.hovered ? safeStyle.hover : "transparent")
+                            radius: 4
                         },
                         Image {
                             anchors.centerIn: parent
-                            source: "image://FluentIcons/bulb/" + bridge.theme + "/" + bridge.style.text
+                            source: "image://FluentIcons/bulb/" + safeTheme + "/" + safeStyle.text
                             width: 16
                             height: 16
                             sourceSize: Qt.size(16, 16)
@@ -171,7 +197,9 @@ Rectangle {
                             onPressed: themeButton.pressed = true
                             onReleased: {
                                 themeButton.pressed = false
-                                bridge.requestThemeToggle()
+                                if (safeBridge) {
+                                    safeBridge.requestThemeToggle()
+                                }
                             }
                         }
                     ]
