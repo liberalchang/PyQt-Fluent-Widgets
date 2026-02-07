@@ -688,7 +688,6 @@ class NavigationPanel(QFrame):
             return
 
         item.setSelected(True)
-        # self._findIndicatorItem(item).setAboutSelected(False) v1.11.1 pass
 
         indicatorItem = self._findIndicatorItem(item)
         if indicatorItem:
