@@ -6,7 +6,7 @@ with open('README.md', encoding='utf-8') as f:
 
 setuptools.setup(
     name="PySide6-Fluent-Widgets",
-    version="1.0.0",
+    version="1.11.1",
     keywords="pyside6 fluent widgets",
     author="liber",
     author_email="changxianglong@outlook.com",
@@ -17,8 +17,8 @@ setuptools.setup(
     url="https://gitee.com/liberalchang/pyside6-fluent-widgets.git",
     packages=setuptools.find_packages(),
     install_requires=[
-        "PySide6>=6.4.2",
-        "PySideSix-Frameless-Window>=0.7.6",
+        "PySide6",
+        "PySideSix-Frameless-Window>=0.8.0",
         "darkdetect",
     ],
     extras_require = {
