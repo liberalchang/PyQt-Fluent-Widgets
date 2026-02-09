@@ -49,6 +49,14 @@ qfluentwidgets.hybrid.resource\_qml module
    :show-inheritance:
    :undoc-members:
 
+qfluentwidgets.hybrid.splash\_screen module
+-------------------------------------------
+
+.. automodule:: qfluentwidgets.hybrid.splash_screen
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 qfluentwidgets.hybrid.svg\_icon\_item module
 --------------------------------------------
 
