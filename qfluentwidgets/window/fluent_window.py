@@ -15,9 +15,9 @@ except ImportError:
     OPENGL_AVAILABLE = False
 
 from ..common.config import qconfig, WindowEffect
-from ..common.icon import FluentIconBase, toQIcon, drawIcon
+from ..common.icon import FluentIconBase, FluentIcon, toQIcon, drawIcon
 from ..common.router import qrouter
-from ..common.style_sheet import FluentStyleSheet, isDarkTheme, setTheme, Theme
+from ..common.style_sheet import FluentStyleSheet, isDarkTheme, setTheme
 from ..common.animation import BackgroundAnimationWidget
 from ..components.widgets.frameless_window import FramelessWindow
 from ..components.widgets.label import CaptionLabel
@@ -117,6 +117,8 @@ class FluentWidget(BackgroundAnimationWidget, FramelessWindow):
             self.windowEffect.setMicaEffect(self.winId(), isDarkTheme())
         elif self.isAcrylicEffectEnabled():
             self.setAcrylicEffectEnabled(True)
+
+        self.setRoundedCornersEnabled(True)
 
     def setMicaEffectEnabled(self, isEnabled: bool):
         """ set whether the mica effect is enabled, only available on Win11 """
@@ -422,15 +424,24 @@ class FluentTitleBar(TitleBar):
         self.hBoxLayout.removeWidget(self.maxBtn)
         self.hBoxLayout.removeWidget(self.closeBtn)
 
+        # 返回按钮隐藏时，为标题栏左侧增加间距，避免窗口图标贴边
+        self._leftMarginWhenReturnHidden = 12
+
+        self.returnButton = FluentTitleBarButton(FluentIcon.RETURN, self)
+        self.returnButton.setFixedSize(46, 48)
+        self.returnButton.clicked.connect(self._onReturnButtonClicked)
+        self.hBoxLayout.insertWidget(0, self.returnButton, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.returnButton.hide()
+
         # add window icon
         self.iconLabel = QLabel(self)
         self.iconLabel.setFixedSize(18, 18)
-        self.hBoxLayout.insertWidget(0, self.iconLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayout.insertWidget(1, self.iconLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         self.window().windowIconChanged.connect(self.setIcon)
 
         # add title label
         self.titleLabel = CaptionLabel(self)
-        self.hBoxLayout.insertWidget(1, self.titleLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
+        self.hBoxLayout.insertWidget(2, self.titleLabel, 0, Qt.AlignLeft | Qt.AlignVCenter)
         self.titleLabel.setObjectName('titleLabel')
         self.window().windowTitleChanged.connect(self.setTitle)
 
@@ -439,6 +450,8 @@ class FluentTitleBar(TitleBar):
 
         self.vBoxLayout = QVBoxLayout()
         self.buttonLayout = QHBoxLayout()
+        # 修复布局边距导致按钮被隐藏的问题
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.buttonLayout.setSpacing(0)
         self.buttonLayout.setContentsMargins(0, 0, 0, 0)
         self.buttonLayout.setAlignment(Qt.AlignTop)
@@ -453,7 +466,7 @@ class FluentTitleBar(TitleBar):
 
     def setMenuBar(self, menuBar):
         """Set menu bar in title bar"""
-        from ..components.widgets.menu_bar import MenuBar
+        # from ..components.widgets.menu_bar import MenuBar
         
         if self._menuBar:
             self.hBoxLayout.removeWidget(self._menuBar)
@@ -461,8 +474,24 @@ class FluentTitleBar(TitleBar):
         
         self._menuBar = menuBar
         if menuBar:
-            # Insert menu bar after title label (at index 2)
-            self.hBoxLayout.insertWidget(2, menuBar, 1, Qt.AlignLeft | Qt.AlignVCenter)
+            # Insert menu bar after title label (at index 3)
+            self.hBoxLayout.insertWidget(3, menuBar, 1, Qt.AlignLeft | Qt.AlignVCenter)
+
+    def _onReturnButtonClicked(self):
+        w = self.window()
+        if hasattr(w, 'navigationInterface') and hasattr(w.navigationInterface, 'panel'):
+            panel = w.navigationInterface.panel
+            if hasattr(panel, 'history'):
+                panel.history.pop()
+
+    def setReturnButtonVisible(self, isVisible: bool):
+        """设置标题栏返回按钮是否可见"""
+        self.returnButton.setVisible(isVisible)
+
+        if isVisible:
+            self.hBoxLayout.setContentsMargins(0, 0, 0, 0)
+        else:
+            self.hBoxLayout.setContentsMargins(self._leftMarginWhenReturnHidden, 0, 0, 0)
 
     def menuBar(self):
         """Get current menu bar"""
@@ -483,7 +512,13 @@ class FluentWindow(FluentWindowBase):
         super().__init__(parent)
         self.setTitleBar(FluentTitleBar(self))
 
-        self.navigationInterface = NavigationInterface(self, showReturnButton=showReturnButton)
+        self.navigationInterface = NavigationInterface(self, showReturnButton=False)
+        self.titleBar.setReturnButtonVisible(showReturnButton)
+
+        # 同步返回按钮可用状态：历史为空时禁用
+        if hasattr(self.navigationInterface, 'panel') and hasattr(self.navigationInterface.panel, 'history'):
+            self.titleBar.returnButton.setDisabled(True)
+            self.navigationInterface.panel.history.emptyChanged.connect(self.titleBar.returnButton.setDisabled)
         self.widgetLayout = QHBoxLayout()
 
         # initialize layout
@@ -771,7 +806,7 @@ class TopNavigationFluentWindow(FluentWindowBase):
         self.setTitleBar(FluentTitleBar(self))
 
         from ..components.navigation import TopNavigationBar
-        self.navigationBar = TopNavigationBar(self, showReturnButton=showReturnButton)
+        self.navigationBar = TopNavigationBar(self, showReturnButton=False)
         self.navigationInterface = self.navigationBar  # For compatibility with base class
         
         self.vBoxLayout = QVBoxLayout()

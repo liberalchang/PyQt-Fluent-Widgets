@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication, QHBoxLayout, QLabel, QFrame, QVBoxLayout, QWidget
+from PySide6.QtGui import QIcon
 
 from qfluentwidgets import (NavigationItemPosition, FluentWindow,
                             FluentIcon as FIF, Theme, setTheme, DrawerWindow, PrimaryPushButton,
@@ -140,7 +141,7 @@ class SearchInterface(DrawerWindow):
 class Window(FluentWindow):
 
     def __init__(self):
-        super().__init__(showReturnButton=True)
+        super().__init__(showReturnButton=False)
 
         # 启用云母特效（Windows 11）
         self.setMicaEffectEnabled(True)
@@ -157,6 +158,7 @@ class Window(FluentWindow):
         self.navigationInterface.setAutoResizeEnabled(True)
 
         self.resize(900, 700)
+        self.setWindowIcon(QIcon(FIF.SEARCH.path(None)))
         self.setWindowTitle('Navigation Test')
 
     def initNavigation(self):

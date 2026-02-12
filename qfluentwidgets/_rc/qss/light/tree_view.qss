@@ -23,12 +23,12 @@ QTreeView::item {
 
 QTreeView::branch:has-children:!has-siblings:closed,
 QTreeView::branch:closed:has-children:has-siblings {
-    image: url(:/qfluentwidgets/images/tree_view/TreeViewClose_black.svg);
+    image: url(:/icon/images/tree_view/TreeViewClose_black.svg);
 }
 
 QTreeView::branch:open:has-children:!has-siblings,
 QTreeView::branch:open:has-children:has-siblings {
-    image: url(:/qfluentwidgets/images/tree_view/TreeViewOpen_black.svg);
+    image: url(:/icon/images/tree_view/TreeViewOpen_black.svg);
 }
 
 QTreeView:disabled {
@@ -82,14 +82,14 @@ QHeaderView::down-arrow {
     subcontrol-origin: padding;
     subcontrol-position: center right;
     margin-right: 6px;
-    image: url(:/qfluentwidgets/images/table_view/Down_black.svg);
+    image: url(:/icon/images/table_view/Down_black.svg);
 }
 
 QHeaderView::up-arrow {
     subcontrol-origin: padding;
     subcontrol-position: center right;
     margin-right: 6px;
-    image: url(:/qfluentwidgets/images/table_view/Up_black.svg);
+    image: url(:/icon/images/table_view/Up_black.svg);
 }
 
 QTableCornerButton::section {

@@ -6,7 +6,19 @@
 FluentWindow
 -----------
 
-Fluent 风格的主窗口组件，提供现代化的窗口界面。
+Fluent 风格的主窗口组件，提供现代化的窗口界面。支持标题栏返回按钮、Win11 圆角和云母特效。
+
+主要功能
+--------
+
+- **标题栏返回按钮** - 可选的标题栏返回按钮，位于窗口图标左侧
+- **Win11 圆角** - 默认启用 Windows 11 圆角效果
+- **云母特效** - 支持 Windows 11 云母背景特效
+- **导航界面** - 集成侧边导航栏
+- **主题支持** - 自动适应明暗主题
+
+基础用法
+--------
 
 .. code-block:: python
 
@@ -14,11 +26,15 @@ Fluent 风格的主窗口组件，提供现代化的窗口界面。
 
    class MainWindow(FluentWindow):
        def __init__(self):
-           super().__init__()
+           # 创建窗口，可选择是否显示标题栏返回按钮
+           super().__init__(showReturnButton=True)
            
            # 设置窗口属性
            self.setWindowTitle('Fluent Window 示例')
            self.resize(800, 600)
+           
+           # 启用云母特效（Windows 11）
+           self.setMicaEffectEnabled(True)
            
            # 添加导航项
            self.add_navigation_items()
@@ -43,23 +59,68 @@ Fluent 风格的主窗口组件，提供现代化的窗口界面。
                position=NavigationItemPosition.TOP
            )
 
-       def create_home_widget(self):
-           """创建首页组件"""
-           from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
-           
-           widget = QWidget()
-           layout = QVBoxLayout(widget)
-           layout.addWidget(QLabel('欢迎使用 Fluent Window'))
-           return widget
+标题栏返回按钮
+~~~~~~~~~~~~
 
-       def create_settings_widget(self):
-           """创建设置组件"""
-           from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
-           
-           widget = QWidget()
-           layout = QVBoxLayout(widget)
-           layout.addWidget(QLabel('设置页面'))
-           return widget
+FluentWindow 支持在标题栏显示返回按钮，位于窗口图标的左侧。
+
+.. code-block:: python
+
+   # 显示标题栏返回按钮
+   window = FluentWindow(showReturnButton=True)
+   
+   # 隐藏标题栏返回按钮
+   window = FluentWindow(showReturnButton=False)
+   
+   # 运行时控制返回按钮可见性
+   window.titleBar.setReturnButtonVisible(False)
+
+**注意事项：**
+- 返回按钮会自动与导航历史同步，历史为空时自动禁用
+- 隐藏返回按钮时，标题栏会自动增加左侧间距，避免图标贴边
+- 导航栏不再显示返回按钮，仅标题栏支持返回按钮
+
+窗口特效
+~~~~~~~~
+
+FluentWindow 支持 Windows 11 的现代化窗口特效。
+
+.. code-block:: python
+
+   # 启用云母特效
+   window.setMicaEffectEnabled(True)
+   
+   # 启用亚克力特效
+   window.setAcrylicEffectEnabled(True)
+   
+   # 设置亚克力透明度
+   window.setAcrylicOpacity(0.7)
+   
+   # 启用圆角（默认已启用）
+   window.setRoundedCornersEnabled(True)
+
+创建子界面
+~~~~~~~~~~
+
+.. code-block:: python
+
+   def create_home_widget(self):
+       """创建首页组件"""
+       from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+       
+       widget = QWidget()
+       layout = QVBoxLayout(widget)
+       layout.addWidget(QLabel('欢迎使用 Fluent Window'))
+       return widget
+
+   def create_settings_widget(self):
+       """创建设置组件"""
+       from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
+       
+       widget = QWidget()
+       layout = QVBoxLayout(widget)
+       layout.addWidget(QLabel('设置页面'))
+       return widget
 
 DrawerWindow
 ------------
@@ -361,10 +422,14 @@ StackedWidget
 
    class MyFluentWindow(FluentWindow):
        def __init__(self):
-           super().__init__()
+           # 创建窗口，可选择是否显示标题栏返回按钮
+           super().__init__(showReturnButton=True)
            
            self.setWindowTitle('Fluent Window 示例')
            self.resize(600, 400)
+           
+           # 启用云母特效
+           self.setMicaEffectEnabled(True)
            
            # 添加导航项
            self.add_navigation_items()
@@ -409,18 +474,28 @@ StackedWidget
    - 使用 DrawerWindow 作为辅助面板
    - 使用 SplashScreen 作为启动画面
 
-2. **合理设置抽屉方向**: 
+2. **合理设置返回按钮**: 
+   - 对于多层级导航，启用标题栏返回按钮
+   - 对于单层应用，禁用返回按钮以获得更简洁的界面
+   - 返回按钮会自动与导航历史同步
+
+3. **窗口特效优化**: 
+   - 在 Windows 11 上启用云母特效以获得现代化外观
+   - 根据应用风格调整亚克力透明度
+   - 圆角效果默认启用，无需额外设置
+
+4. **合理设置抽屉方向**: 
    - 左侧抽屉适合导航菜单
    - 右侧抽屉适合设置面板
    - 顶部抽屉适合工具栏
    - 底部抽屉适合状态信息
 
-3. **优化用户体验**: 
+5. **优化用户体验**: 
    - 提供清晰的关闭按钮
    - 设置合适的动画时长
    - 避免同时显示多个抽屉
 
-4. **响应式设计**: 
+6. **响应式设计**: 
    - 根据窗口大小调整抽屉尺寸
    - 在小屏幕上使用全屏抽屉
 

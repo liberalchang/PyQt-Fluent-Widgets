@@ -1,8 +1,8 @@
 # coding:utf-8
 from enum import Enum
-from typing import Dict, Union
+from typing import Union
 
-from PySide6.QtCore import Qt, QPropertyAnimation, QRect, QSize, QEvent, QEasingCurve, Signal, QPoint, QRectF
+from PySide6.QtCore import Qt, QPropertyAnimation, QRect, QSize, QEvent, QEasingCurve, Signal, QPoint
 from PySide6.QtGui import QResizeEvent, QIcon, QColor, QPainterPath
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QFrame, QApplication, QHBoxLayout
 
@@ -66,7 +66,6 @@ class NavigationPanel(QFrame):
         super().__init__(parent=parent)
         self._parent = parent   # type: QWidget
         self._isMenuButtonVisible = True
-        self._isReturnButtonVisible = showReturnButton
         self._isCollapsible = True
         self._isAcrylicEnabled = False
         
@@ -86,7 +85,6 @@ class NavigationPanel(QFrame):
         self.scrollWidget = QWidget()
 
         self.menuButton = NavigationToolButton(FIF.MENU, self)
-        self.returnButton = NavigationToolButton(FIF.RETURN, self)
 
         self.vBoxLayout = NavigationItemLayout(self)
         self.topLayout = NavigationItemLayout()
@@ -115,10 +113,6 @@ class NavigationPanel(QFrame):
         self.setAttribute(Qt.WA_StyledBackground)
         self.window().installEventFilter(self)
 
-        # 使用新的方法来设置ReturnButton的初始状态
-        self.setReturnButtonVisible(self._isReturnButtonVisible)
-        self.returnButton.setDisabled(True)
-
         self.scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.scrollArea.horizontalScrollBar().setEnabled(False)
         self.scrollArea.setWidget(self.scrollWidget)
@@ -131,14 +125,9 @@ class NavigationPanel(QFrame):
 
         self.menuButton.clicked.connect(self.toggle)
         self.expandAni.finished.connect(self._onExpandAniFinished)
-        self.history.emptyChanged.connect(self.returnButton.setDisabled)
-        self.returnButton.clicked.connect(self.history.pop)
         self.indicator.aniFinished.connect(self._onIndicatorAniFinished)
 
         # add tool tip
-        self.returnButton.installEventFilter(ToolTipFilter(self.returnButton, 1000))
-        self.returnButton.setToolTip(self.tr('Back'))
-
         self.menuButton.installEventFilter(ToolTipFilter(self.menuButton, 1000))
         self.menuButton.setToolTip(self.tr('Open Navigation'))
 
@@ -167,13 +156,6 @@ class NavigationPanel(QFrame):
         self.scrollLayout.setAlignment(Qt.AlignTop)
         self.bottomLayout.setAlignment(Qt.AlignBottom)
 
-        # 创建一个固定高度的spacer来保持MenuButton位置
-        self.returnButtonSpacer = QWidget()
-        self.returnButtonSpacer.setFixedSize(40, 36)  # 与NavigationToolButton大小相同
-        self.returnButtonSpacer.hide()  # 默认隐藏
-        
-        # 只添加spacer到布局，ReturnButton通过动态添加/移除来管理
-        self.topLayout.addWidget(self.returnButtonSpacer, 0, Qt.AlignTop)
         self.topLayout.addWidget(self.menuButton, 0, Qt.AlignTop)
 
     def _updateAcrylicColor(self):
@@ -528,22 +510,7 @@ class NavigationPanel(QFrame):
         self.menuButton.setVisible(isVisible)
 
     def setReturnButtonVisible(self, isVisible: bool):
-        """ set whether the return button is visible """
-        self._isReturnButtonVisible = isVisible
-        
-        # 动态添加/移除ReturnButton，隐藏时让MenuButton向上移动
-        if isVisible:
-            # 显示ReturnButton：添加到布局，隐藏spacer
-            if self.topLayout.indexOf(self.returnButton) == -1:
-                self.topLayout.insertWidget(0, self.returnButton, 0, Qt.AlignTop)
-            self.returnButton.show()
-            self.returnButtonSpacer.hide()
-        else:
-            # 隐藏ReturnButton：从布局移除，不显示spacer，让MenuButton向上移动
-            self.returnButton.hide()
-            if self.topLayout.indexOf(self.returnButton) != -1:
-                self.topLayout.removeWidget(self.returnButton)
-            self.returnButtonSpacer.hide()  # 不显示spacer，让MenuButton向上移动
+        return
 
     def setCollapsible(self, on: bool):
         self._isCollapsible = on
