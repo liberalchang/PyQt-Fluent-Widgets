@@ -9,7 +9,7 @@
 - StyledRectangleEntry: 带样式控制的矩形
 - StyledEllipseEntry: 带样式控制的圆形/椭圆
 """
-from typing import Union, Tuple, Optional
+from typing import Union
 import numpy as np
 
 try:
@@ -18,7 +18,7 @@ try:
 except ImportError:
     VISPY_AVAILABLE = False
 
-from ..vispy_visuals import VisualEntry, LineEntry
+from ..vispy_visuals import VisualEntry
 
 
 class BezierCurveEntry(VisualEntry):

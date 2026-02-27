@@ -1,5 +1,5 @@
 # coding:utf-8
-from PySide6.QtCore import Qt, QUrl, Property, QRectF, Signal
+from PySide6.QtCore import Qt, Property, QRectF, Signal
 from PySide6.QtGui import QColor, QPainter, QImage
 from PySide6.QtQuick import QQuickPaintedItem
 from PySide6.QtSvg import QSvgRenderer

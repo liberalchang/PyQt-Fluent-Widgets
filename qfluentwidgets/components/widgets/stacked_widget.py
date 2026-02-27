@@ -1,6 +1,4 @@
 # coding:utf-8
-from enum import Enum
-from typing import List
 
 from PySide6.QtCore import (QAbstractAnimation, QEasingCurve, QPoint, QPropertyAnimation,
                           Signal, QParallelAnimationGroup, Qt, QSequentialAnimationGroup, QRect)

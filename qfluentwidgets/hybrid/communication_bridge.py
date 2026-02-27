@@ -1,7 +1,7 @@
 # coding:utf-8
 from PySide6.QtCore import QObject, Signal, Slot, QPoint, Property
-from qfluentwidgets.common.icon import FluentIcon, AntDesignIcon, getIconColor
-from qfluentwidgets.common.config import qconfig, Theme
+from qfluentwidgets.common.icon import FluentIcon, AntDesignIcon
+from qfluentwidgets.common.config import qconfig
 
 class CommunicationBridge(QObject):
     """ Bridge for communication between QML and Widget """

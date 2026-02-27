@@ -12,7 +12,7 @@ try:
     from ...common.image_utils import gaussianBlur
 
     isAcrylicAvailable = True
-except ImportError as e:
+except ImportError as e:  # noqa: F841
     isAcrylicAvailable = False
 
     def gaussianBlur(imagePath, blurRadius=18, brightFactor=1, blurPicSize=None):

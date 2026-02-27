@@ -7,9 +7,9 @@ from PySide6.QtWidgets import QApplication, QWidget
 from ...common.font import setFont
 from ...common.icon import FluentIconBase, drawIcon, Theme
 from ...common.color import autoFallbackThemeColor
-from ...common.style_sheet import themeColor, FluentStyleSheet, isDarkTheme
-from ...common.animation import FluentAnimation, FluentAnimationType, FluentAnimationProperty, ScaleSlideAnimation
-from ..widgets.button import PushButton, ToolButton, TransparentToolButton
+from ...common.style_sheet import FluentStyleSheet, isDarkTheme
+from ...common.animation import FluentAnimation, FluentAnimationType, FluentAnimationProperty
+from ..widgets.button import ToolButton, TransparentToolButton
 from .pivot import Pivot, PivotItem
 
 

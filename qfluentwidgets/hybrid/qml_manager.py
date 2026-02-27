@@ -1,7 +1,5 @@
 # coding:utf-8
 from enum import Enum
-from . import resource_qml
-from PySide6.QtCore import QUrl
 
 class HybridQml(Enum):
     """ Hybrid QML Resource Paths """

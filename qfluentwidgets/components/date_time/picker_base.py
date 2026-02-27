@@ -2,7 +2,7 @@
 from typing import Iterable, List
 
 from PySide6.QtCore import Qt, Signal, QSize, QRectF, QPoint, QPropertyAnimation, QEasingCurve, QObject
-from PySide6.QtGui import QColor, QPainter, QCursor, QRegion
+from PySide6.QtGui import QColor, QPainter, QRegion
 from PySide6.QtWidgets import (QApplication, QWidget, QFrame, QVBoxLayout, QHBoxLayout,
                              QGraphicsDropShadowEffect, QSizePolicy, QPushButton, QListWidgetItem)
 
@@ -10,7 +10,7 @@ from ..widgets.cycle_list_widget import CycleListWidget
 from ..widgets.button import TransparentToolButton
 from ...common.icon import FluentIcon
 from ...common.screen import getCurrentScreenGeometry
-from ...common.style_sheet import FluentStyleSheet, themeColor, isDarkTheme
+from ...common.style_sheet import FluentStyleSheet, isDarkTheme
 from ...common.color import autoFallbackThemeColor
 
 

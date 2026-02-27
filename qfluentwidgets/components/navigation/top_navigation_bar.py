@@ -1,13 +1,12 @@
 # coding:utf-8
-from typing import Dict, Union
+from typing import Union
 
-from PySide6.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, Property, QRectF, QPoint, QEvent
+from PySide6.QtCore import Qt, QRect, QRectF, QPoint, QEvent
 from PySide6.QtGui import QFont, QPainter, QColor, QIcon
 from PySide6.QtWidgets import QWidget, QHBoxLayout
 
 from ...common.config import isDarkTheme
 from ...common.font import setFont
-from ...common.style_sheet import themeColor
 from ...common.color import autoFallbackThemeColor
 from ...common.icon import drawIcon, FluentIconBase, toQIcon
 from ...common.icon import FluentIcon as FIF

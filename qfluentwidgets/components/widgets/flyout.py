@@ -5,7 +5,7 @@ from typing import Union
 
 from PySide6.QtCore import (Qt, QPropertyAnimation, QPoint, QParallelAnimationGroup, QEasingCurve, QMargins,
                           QRectF, QObject, QSize, Signal, QEvent)
-from PySide6.QtGui import QPixmap, QPainter, QColor, QCursor, QIcon, QImage, QPainterPath, QBrush, QMovie, QImageReader
+from PySide6.QtGui import QPixmap, QPainter, QColor, QCursor, QIcon, QImage
 from PySide6.QtWidgets import QWidget, QGraphicsDropShadowEffect, QLabel, QHBoxLayout, QVBoxLayout, QApplication
 
 from ...common.auto_wrap import TextWrap

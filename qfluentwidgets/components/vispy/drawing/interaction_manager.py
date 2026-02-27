@@ -15,7 +15,7 @@ from PySide6.QtCore import QObject, Signal
 from .coordinate_system import CoordinateSystem
 from .selection_manager import SelectionManager
 from .data_models import (
-    PrimitiveData, PointData, LineData, BezierData, ArcData, CircleData,
+    PrimitiveData, LineData, BezierData, CircleData,
     RectangleData, PolygonData, MarkersData, StyleData
 )
 

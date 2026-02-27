@@ -1,14 +1,13 @@
 # coding:utf-8
-from typing import List, Union
+from typing import Union
 
-from PySide6.QtCore import Qt, Signal, QSize, QRect, QPoint
-from PySide6.QtGui import QColor, QPainter, QBrush, QAction, QIcon, QPixmap
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QGridLayout, QToolButton, QHBoxLayout, QApplication, QPushButton
+from PySide6.QtCore import Qt, Signal, QSize
+from PySide6.QtGui import QColor, QPainter, QIcon, QPixmap
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QGridLayout, QToolButton, QHBoxLayout, QPushButton
 
 from ...common.icon import FluentIcon as FIF, toQIcon
-from ...common.icon import drawIcon
 from ...common.style_sheet import FluentStyleSheet, isDarkTheme
-from ...components.widgets.button import PushButton, TransparentToolButton
+from ...components.widgets.button import TransparentToolButton
 from ...components.widgets.flyout import Flyout, FlyoutViewBase, FlyoutAnimationType
 from .color_dialog import ColorDialog
 from .circle_color_picker import CircleColorPicker

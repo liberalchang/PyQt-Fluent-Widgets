@@ -7,12 +7,12 @@
 - 框选检测：拖拽矩形框选中多个图元
 - 高亮渲染：为选中的图元添加高亮效果
 """
-from typing import List, Set, Tuple, Optional
+from typing import List, Set, Optional
 import numpy as np
 from PySide6.QtCore import QObject, Signal
 
 try:
-    from vispy.scene import visuals
+    from vispy.scene import visuals  # noqa: F401
     VISPY_AVAILABLE = True
 except ImportError:
     VISPY_AVAILABLE = False
@@ -372,7 +372,7 @@ class SelectionManager(QObject):
         # 创建矩形高亮框 (灰色)
         if VISPY_AVAILABLE and self.parent_view:
             from vispy.scene.visuals import Rectangle
-            from vispy.color import Color
+            from vispy.color import Color  # noqa: F401
             
             # 灰色高亮框
             rect = Rectangle(center=(center_x, center_y), width=width, height=height,

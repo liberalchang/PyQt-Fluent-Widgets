@@ -8,8 +8,8 @@
 - Layer: 图层对象，包含多个 PrimitiveGroup
 - LayerManager: 管理所有图层的顶层管理器
 """
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+from dataclasses import dataclass
 import uuid
 
 from .data_models import PrimitiveData

@@ -1,14 +1,13 @@
 # coding:utf-8
-from typing import Union, List
+from typing import Union
 
 from PySide6.QtCore import (Qt, Signal, QRect, QRectF, QPropertyAnimation, Property, QMargins,
                           QEasingCurve, QPoint, QEvent, QParallelAnimationGroup)
-from PySide6.QtGui import QColor, QPainter, QPen, QIcon, QCursor, QFont, QBrush, QPixmap, QImage
+from PySide6.QtGui import QColor, QPainter, QPen, QIcon, QCursor, QFont, QPixmap, QImage
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from collections import deque
 
 from ...common.config import isDarkTheme
-from ...common.style_sheet import themeColor
 from ...common.icon import drawIcon, toQIcon
 from ...common.icon import FluentIcon as FIF
 from ...common.color import autoFallbackThemeColor

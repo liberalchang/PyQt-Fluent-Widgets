@@ -121,7 +121,7 @@ class ColorValidator(ConfigValidator):
     def validate(self, color):
         try:
             return QColor(color).isValid()
-        except:
+        except:  # noqa: E722
             return False
 
     def correct(self, value):
@@ -313,7 +313,7 @@ class QConfig(QObject):
         # deepcopy new value
         try:
             item.value = deepcopy(value) if copy else value
-        except:
+        except:  # noqa: E722
             item.value = value
 
         if save:
@@ -377,7 +377,7 @@ class QConfig(QObject):
         try:
             with open(self._cfg.file, encoding="utf-8") as f:
                 cfg = json.load(f)
-        except:
+        except:  # noqa: E722
             cfg = {}
 
         # map config items'key to item

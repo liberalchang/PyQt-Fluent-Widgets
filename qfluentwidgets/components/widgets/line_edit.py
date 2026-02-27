@@ -2,8 +2,8 @@
 from typing import List, Union
 from PySide6.QtCore import QSize, Qt, QRectF, Signal, QPoint, QTimer, QEvent, QAbstractItemModel, Property, QModelIndex
 from PySide6.QtGui import QPainter, QPainterPath, QIcon, QColor, QAction
-from PySide6.QtWidgets import (QApplication, QHBoxLayout, QLineEdit, QToolButton, QTextEdit,
-                               QPlainTextEdit, QCompleter, QStyle, QWidget, QTextBrowser)
+from PySide6.QtWidgets import (QHBoxLayout, QLineEdit, QToolButton, QTextEdit,
+                               QPlainTextEdit, QCompleter, QWidget, QTextBrowser)
 
 
 from ...common.style_sheet import FluentStyleSheet, themeColor, updateDynamicStyle

@@ -1,11 +1,10 @@
 # coding:utf-8
-from PySide6.QtCore import Qt, Signal, QPoint, QRect, QTimer, QSize
-from PySide6.QtGui import QColor, QPainter, QCursor, QGuiApplication, QPixmap, QPen, QBrush, QAction, QPainterPath
-from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QApplication, QGraphicsOpacityEffect
+from PySide6.QtCore import Qt, Signal, QRect, QTimer
+from PySide6.QtGui import QColor, QPainter, QCursor, QGuiApplication, QPixmap, QPen, QPainterPath
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout
 
 from qfluentwidgets.common.icon import FluentIcon as FIF
 from qfluentwidgets.common.style_sheet import FluentStyleSheet
-from qfluentwidgets.common.config import isDarkTheme, Theme
 from qfluentwidgets.components.widgets.line_edit import LineEdit
 from qfluentwidgets.components.widgets.button import ToolButton
 

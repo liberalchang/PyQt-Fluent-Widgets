@@ -1,9 +1,9 @@
 # coding:utf-8
 from typing import Union
 
-from PySide6.QtCore import Qt, Signal, QRect, QSize
+from PySide6.QtCore import Qt, Signal, QRect
 from PySide6.QtGui import QColor, QPainter, QIcon
-from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QHBoxLayout
+from PySide6.QtWidgets import QPushButton, QVBoxLayout
 
 from ...common.icon import FluentIcon as FIF, toQIcon
 from ...common.style_sheet import isDarkTheme
@@ -11,7 +11,7 @@ from ...components.widgets.flyout import Flyout, FlyoutAnimationType, FlyoutView
 from ...components.widgets.scroll_area import SingleDirectionScrollArea
 from .color_dialog import ColorDialog, ColorPickerWidget
 from .circle_color_picker import CircleColorPicker
-from .screen_color_picker import ScreenColorPicker, ScreenColorPickerOverlay
+from .screen_color_picker import ScreenColorPickerOverlay
 from .color_palette import ColorPalette
 
 
@@ -216,7 +216,7 @@ class ColorDialogButton(ColorButton):
         # But Flyout doesn't enforce scroll.
         # Assuming screen is large enough for now.
         
-        w = Flyout.make(view, self, self.window(), FlyoutAnimationType.PULL_UP, True)
+        w = Flyout.make(view, self, self.window(), FlyoutAnimationType.PULL_UP, True)  # noqa: F841
 
 
 class CircleColorButton(ColorButton):

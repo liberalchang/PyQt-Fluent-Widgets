@@ -3,7 +3,7 @@ from enum import Enum
 
 from PySide6.QtCore import QEvent, QObject, QPoint, QTimer, Qt, QPropertyAnimation, QModelIndex, QRect
 from PySide6.QtGui import QColor, QHelpEvent
-from PySide6.QtWidgets import (QApplication, QFrame, QGraphicsDropShadowEffect,
+from PySide6.QtWidgets import (QFrame, QGraphicsDropShadowEffect,
                              QHBoxLayout, QLabel, QWidget, QAbstractItemView, QStyleOptionViewItem,
                              QTableView)
 

@@ -1,16 +1,16 @@
 # coding:utf-8
 
-from typing import List, Union
+from typing import Union
 
-from PySide6.QtCore import Qt, Property, QPoint, Signal, QSize, QRectF, QUrl
-from PySide6.QtGui import (QPainter, QPixmap, QPalette, QColor, QFont, QImage, QPainterPath,
-                         QImageReader, QBrush, QMovie, QDesktopServices)
+from PySide6.QtCore import Qt, Property, Signal, QSize, QRectF, QUrl
+from PySide6.QtGui import (QPainter, QPixmap, QColor, QFont, QImage, QPainterPath,
+                         QImageReader, QMovie, QDesktopServices)
 from PySide6.QtWidgets import QLabel, QWidget, QPushButton, QApplication
 
 from ...common.exception_handler import exceptionHandler
 from ...common.overload import singledispatchmethod
 from ...common.font import setFont, getFont
-from ...common.style_sheet import FluentStyleSheet, setCustomStyleSheet, setCustomStyleSheet
+from ...common.style_sheet import FluentStyleSheet, setCustomStyleSheet
 from ...common.config import qconfig, isDarkTheme
 from .menu import LabelContextMenu
 

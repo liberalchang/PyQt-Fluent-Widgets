@@ -1,15 +1,14 @@
 # coding:utf-8
-from typing import Dict
 
 from PySide6.QtCore import Qt, Signal, QRectF
-from PySide6.QtGui import QPainter, QFont, QColor
-from PySide6.QtWidgets import QApplication, QPushButton, QWidget, QHBoxLayout, QSizePolicy
+from PySide6.QtGui import QPainter, QColor
+from PySide6.QtWidgets import QApplication, QWidget, QHBoxLayout, QSizePolicy
 
 from ...common.font import setFont
 from ...common.router import qrouter
-from ...common.style_sheet import themeColor, FluentStyleSheet
+from ...common.style_sheet import FluentStyleSheet
 from ...common.color import autoFallbackThemeColor
-from ...common.animation import FluentAnimation, FluentAnimationType, FluentAnimationProperty, ScaleSlideAnimation
+from ...common.animation import ScaleSlideAnimation
 from ..widgets.button import PushButton
 from .navigation_panel import RouteKeyError
 

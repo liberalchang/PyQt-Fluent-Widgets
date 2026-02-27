@@ -8,11 +8,11 @@ from PySide6.QtCore import (Qt, QEvent, QSize, QRectF, QObject, QPropertyAnimati
                           QEasingCurve, QTimer, Signal, QParallelAnimationGroup, QPoint)
 from PySide6.QtGui import QPainter, QIcon, QColor
 from PySide6.QtWidgets import (QWidget, QFrame, QLabel, QHBoxLayout, QVBoxLayout,
-                             QToolButton, QGraphicsOpacityEffect, QApplication)
+                             QGraphicsOpacityEffect, QApplication)
 
 from ...common.auto_wrap import TextWrap
 from ...common.style_sheet import FluentStyleSheet, themeColor
-from ...common.icon import FluentIconBase, Theme, isDarkTheme, writeSvg, drawSvgIcon, drawIcon
+from ...common.icon import FluentIconBase, Theme, isDarkTheme, drawIcon
 from ...common.icon import FluentIcon as FIF
 from .button import TransparentToolButton
 
@@ -436,7 +436,7 @@ class InfoBarManager(QObject):
                     bar.move(self._pos(bar, size))
 
             return super().eventFilter(obj, e)
-        except:
+        except:  # noqa: E722
             return False
 
     @classmethod

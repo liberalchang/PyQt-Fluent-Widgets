@@ -2,7 +2,7 @@
 from typing import Union
 import sys
 
-from PySide6.QtCore import Qt, QSize, QRect, QRectF, QTimer
+from PySide6.QtCore import Qt, QSize, QRect, QRectF
 from PySide6.QtGui import QIcon, QPainter, QColor
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QApplication, QGraphicsOpacityEffect
 
@@ -17,7 +17,7 @@ except ImportError:
 from ..common.config import qconfig, WindowEffect
 from ..common.icon import FluentIconBase, FluentIcon, toQIcon, drawIcon
 from ..common.router import qrouter
-from ..common.style_sheet import FluentStyleSheet, isDarkTheme, setTheme
+from ..common.style_sheet import FluentStyleSheet, isDarkTheme
 from ..common.animation import BackgroundAnimationWidget
 from ..components.widgets.frameless_window import FramelessWindow
 from ..components.widgets.label import CaptionLabel

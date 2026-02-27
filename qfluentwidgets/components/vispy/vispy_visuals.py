@@ -4,7 +4,7 @@ Vispy Visual 图形元素封装模块
 
 提供统一的 Visual 元素接口，封装 Vispy 的各种可视化对象。
 """
-from typing import Union, Tuple, Optional
+from typing import Union, Optional
 import numpy as np
 from abc import ABC, abstractmethod
 

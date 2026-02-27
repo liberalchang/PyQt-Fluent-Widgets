@@ -1,13 +1,13 @@
 # coding:utf-8
-from typing import List, Union
+from typing import List
 
 from PySide6.QtCore import Qt, QModelIndex, Property
 from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QStyleOptionViewItem, QListView, QListView, QListWidget, QWidget
+from PySide6.QtWidgets import QStyleOptionViewItem, QListView, QListWidget, QWidget
 
 from .scroll_bar import SmoothScrollDelegate
 from .table_view import TableItemDelegate
-from ...common.style_sheet import FluentStyleSheet, themeColor
+from ...common.style_sheet import FluentStyleSheet
 from ...common.color import autoFallbackThemeColor
 
 

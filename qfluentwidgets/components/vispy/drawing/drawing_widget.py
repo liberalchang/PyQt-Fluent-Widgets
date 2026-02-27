@@ -13,7 +13,7 @@ from PySide6.QtGui import QKeyEvent
 from qfluentwidgets.common import DrawIcon
 
 try:
-    from vispy import app as vispy_app
+    from vispy import app as vispy_app  # noqa: F401
     VISPY_AVAILABLE = True
 except ImportError:
     VISPY_AVAILABLE = False
@@ -147,7 +147,7 @@ class InteractiveDrawingWidget(QWidget):
             self._updateLabelPosition()
             if self.coordLabel.isHidden():
                 self.coordLabel.show()
-        except Exception as e:
+        except Exception:
             pass
             
     def resizeEvent(self, event):

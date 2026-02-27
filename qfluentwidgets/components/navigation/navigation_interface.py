@@ -2,12 +2,11 @@
 from typing import Union
 
 from PySide6.QtCore import Qt, QEvent, Signal
-from PySide6.QtGui import QResizeEvent, QIcon, QPixmap
+from PySide6.QtGui import QResizeEvent, QIcon
 from PySide6.QtWidgets import QWidget
 
 from .navigation_panel import NavigationPanel, NavigationItemPosition, NavigationWidget, NavigationDisplayMode
 from .navigation_widget import NavigationTreeWidget, NavigationUserCard
-from ...common.style_sheet import FluentStyleSheet
 from ...common.icon import FluentIconBase
 
 

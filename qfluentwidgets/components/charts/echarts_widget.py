@@ -8,14 +8,17 @@ from ...common.chart_resource import ChartResource
 
 try:
     from PySide6.QtWebEngineWidgets import QWebEngineView
+    from qframelesswindow.webengine import FramelessWebEngineView
     from PySide6.QtWebChannel import QWebChannel
     WEBENGINE_AVAILABLE = True
 except ImportError as e:
     WEBENGINE_AVAILABLE = False
     IMPORT_ERROR = str(e)
     # Define dummy classes to avoid NameError
-    class QWebEngineView(QWidget): pass
-    class QWebChannel(QObject): pass
+    class QWebEngineView(QWidget):
+        pass
+    class QWebChannel(QObject): 
+        pass
 
 
 class ChartBridge(QObject):
@@ -35,7 +38,7 @@ class ChartBridge(QObject):
         except Exception as e:
             print(f"Error parsing click data: {e}")
 
-class EChartsWidget(QWebEngineView):
+class EChartsWidget(FramelessWebEngineView):
     """ ECharts widget """
     
     chartClicked = Signal(dict)

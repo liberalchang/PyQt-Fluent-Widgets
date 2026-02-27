@@ -1,7 +1,7 @@
 # coding:utf-8
 from copy import deepcopy
 from enum import Enum
-from typing import Dict, List, Union
+from typing import Union
 from uuid import uuid1
 from PySide6.QtCore import Qt, Signal, Property, QRectF, QSize, QPoint, QPropertyAnimation, QEasingCurve, QRect
 from PySide6.QtGui import QPainter, QColor, QIcon, QPainterPath, QLinearGradient, QPen, QBrush, QMouseEvent

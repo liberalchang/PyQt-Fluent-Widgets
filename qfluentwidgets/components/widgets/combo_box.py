@@ -1,8 +1,8 @@
 # coding:utf-8
 import sys
-from typing import Union, List, Iterable
+from typing import Union, Iterable
 
-from PySide6.QtCore import Qt, Signal, QRectF, QPoint, QObject, QEvent
+from PySide6.QtCore import Qt, Signal, QRectF, QPoint, QEvent
 from PySide6.QtGui import QPainter, QAction, QCursor, QIcon
 from PySide6.QtWidgets import QPushButton, QApplication
 
@@ -293,7 +293,7 @@ class ComboBoxBase:
         # drop menu could be deleted before this method
         try:
             self.dropMenu.close()
-        except:
+        except:  # noqa: E722
             pass
 
         self.dropMenu = None

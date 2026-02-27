@@ -1,10 +1,8 @@
 # coding:utf-8
-from PySide6.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, Signal, QEvent
-from PySide6.QtGui import QColor, QPalette
-from PySide6.QtWidgets import QWidget, QFrame, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QGraphicsOpacityEffect
+from PySide6.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, QEvent
+from PySide6.QtWidgets import QWidget, QFrame, QVBoxLayout, QLabel, QPushButton, QHBoxLayout
 
 from ..common.style_sheet import isDarkTheme
-from ..common.icon import FluentIconBase, toQIcon
 
 
 class Drawer(QFrame):

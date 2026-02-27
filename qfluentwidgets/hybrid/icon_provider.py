@@ -1,7 +1,7 @@
 # coding:utf-8
 from PySide6.QtQuick import QQuickImageProvider
 from PySide6.QtGui import QImage, QPainter, QColor
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtSvg import QSvgRenderer
 
 from ..common.icon import FluentIcon, AntDesignIcon

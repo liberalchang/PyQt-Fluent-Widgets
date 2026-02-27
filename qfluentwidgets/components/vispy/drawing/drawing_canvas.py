@@ -6,7 +6,7 @@
 """
 import numpy as np
 import math
-from typing import Optional, Dict, List, Union
+from typing import Optional, List, Union
 from PySide6.QtCore import QObject, Signal
 
 from ..vispy_canvas import VispyCanvas2D, VISPY_AVAILABLE

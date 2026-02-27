@@ -1,1 +1,1 @@
-from .echarts_widget import EChartsWidget
+from .echarts_widget import EChartsWidget  # noqa: F401

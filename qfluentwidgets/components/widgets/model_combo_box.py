@@ -1,12 +1,12 @@
 # coding:utf-8
 import sys
-from typing import Union, List, Iterable
+from typing import Union, Iterable
 
-from PySide6.QtCore import Qt, Signal, QRectF, QPoint, QObject, QEvent, QModelIndex, QAbstractItemModel
+from PySide6.QtCore import Qt, Signal, QRectF, QPoint, QEvent, QModelIndex, QAbstractItemModel
 from PySide6.QtGui import QPainter, QCursor, QIcon, QStandardItemModel, QStandardItem, QAction
 from PySide6.QtWidgets import QPushButton, QApplication
 
-from .menu import RoundMenu, MenuAnimationType, IndicatorMenuItemDelegate
+from .menu import MenuAnimationType
 from .line_edit import LineEdit, LineEditButton
 from .combo_box import ComboBoxMenu
 from ...common.animation import TranslateYAnimation
@@ -327,7 +327,7 @@ class ModelComboBoxBase:
         # drop menu could be deleted before this method
         try:
             self.dropMenu.close()
-        except:
+        except:  # noqa: E722
             pass
 
         self.dropMenu = None

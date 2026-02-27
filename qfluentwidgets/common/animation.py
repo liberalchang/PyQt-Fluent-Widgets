@@ -1,6 +1,6 @@
 # coding: utf-8
 from enum import Enum
-from PySide6.QtCore import QEasingCurve, QEvent, QObject, QPropertyAnimation, Property, Signal, QPoint, QPointF, QRect, QRectF, QParallelAnimationGroup, QSequentialAnimationGroup, Qt
+from PySide6.QtCore import QEasingCurve, QEvent, QObject, QPropertyAnimation, Property, Signal, QPoint, QPointF, QRectF, QParallelAnimationGroup, QSequentialAnimationGroup, Qt
 from PySide6.QtGui import QMouseEvent, QEnterEvent, QColor
 from PySide6.QtWidgets import QWidget, QLineEdit, QGraphicsDropShadowEffect
 

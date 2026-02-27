@@ -4,13 +4,13 @@ Vispy Widget 控件层模块
 
 提供 VispyWidget2D 和 VispyWidget3D 控件，集成主题管理和数据接口。
 """
-from typing import Union, Tuple, Optional
+from typing import Union, Optional
 import numpy as np
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
 
 try:
-    from vispy import app as vispy_app
+    from vispy import app as vispy_app  # noqa: F401
     VISPY_AVAILABLE = True
 except ImportError:
     VISPY_AVAILABLE = False

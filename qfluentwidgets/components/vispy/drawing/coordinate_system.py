@@ -116,8 +116,8 @@ class CoordinateSystem:
             
             # 归一化设备坐标 (NDC)：范围 [-1, 1]
             # vispy 坐标系统：左下角为原点，Y轴向上
-            ndc_x = (2.0 * x / canvas_width) - 1.0
-            ndc_y = 1.0 - (2.0 * y / canvas_height)  # 翻转 Y 轴
+            ndc_x = (2.0 * x / canvas_width) - 1.0  # noqa: F841
+            ndc_y = 1.0 - (2.0 * y / canvas_height)  # 翻转 Y 轴  # noqa: F841
             
             # 使用简化的坐标转换，但考虑相机的基本变换
             # 世界坐标系：原点在画布中心，X轴向右，Y轴向上

@@ -4,8 +4,8 @@ from typing import List, Union
 
 from qframelesswindow import WindowEffect
 from PySide6.QtCore import (QEasingCurve, QEvent, QPropertyAnimation, QObject, QModelIndex,
-                          Qt, QSize, QRectF, Signal, QPoint, QTimer, QObject, QParallelAnimationGroup, QRect)
-from PySide6.QtGui import (QAction, QActionGroup, QIcon, QColor, QPainter, QPen, QPixmap, QRegion, QCursor, QTextCursor, QHoverEvent,
+                          Qt, QSize, QRectF, Signal, QPoint, QTimer, QParallelAnimationGroup, QRect)
+from PySide6.QtGui import (QAction, QActionGroup, QIcon, QColor, QPainter, QPen, QPixmap, QRegion, QTextCursor, QHoverEvent,
                            QFontMetrics, QKeySequence)
 from PySide6.QtWidgets import (QApplication, QMenu, QProxyStyle, QStyle, QStyleFactory,
                                QGraphicsDropShadowEffect, QListWidget, QWidget, QHBoxLayout,
@@ -15,7 +15,7 @@ from ...common.icon import FluentIcon as FIF
 from ...common.icon import FluentIconEngine, Action, FluentIconBase, Icon
 from ...common.style_sheet import FluentStyleSheet, themeColor
 from ...common.screen import getCurrentScreenGeometry
-from ...common.font import getFont, fontStyleSheet
+from ...common.font import getFont
 from ...common.config import isDarkTheme
 from .scroll_bar import SmoothScrollDelegate
 from .tool_tip import ItemViewToolTipDelegate, ItemViewToolTipType
@@ -624,7 +624,7 @@ class RoundMenu(QMenu):
         self.timer.start()
 
     def _onShowMenuTimeOut(self):
-        if self.lastHoverSubMenuItem is None or not self.lastHoverItem is self.lastHoverSubMenuItem:
+        if self.lastHoverSubMenuItem is None or self.lastHoverItem is not self.lastHoverSubMenuItem:
             return
 
         w = self.view.itemWidget(self.lastHoverSubMenuItem)

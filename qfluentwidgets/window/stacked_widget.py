@@ -2,7 +2,7 @@
 from PySide6.QtCore import Qt, Signal, QEasingCurve
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QAbstractScrollArea
 
-from ..components.widgets.stacked_widget import PopUpAniStackedWidget, EntranceTransitionStackedWidget
+from ..components.widgets.stacked_widget import PopUpAniStackedWidget
 
 
 

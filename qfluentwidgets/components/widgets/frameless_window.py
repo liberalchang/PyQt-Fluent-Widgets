@@ -19,7 +19,7 @@ else:
 
         def __init__(self, parent=None):
             super().__init__(parent)
-            self.windowEffect.setMicaEffect(self.winId())
+            # 窗口特效由上层 FluentWidget/FluentWindow 统一管理，这里不要强制设置
 
         def nativeEvent(self, eventType, message):
             """ Handle the Windows message """

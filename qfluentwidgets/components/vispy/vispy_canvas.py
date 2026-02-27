@@ -4,13 +4,13 @@ Vispy Canvas 画布层模块
 
 负责创建和管理 Vispy SceneCanvas，处理 OpenGL 上下文、相机控制、主题管理。
 """
-from typing import Dict, Optional, Union
+from typing import Dict
 import numpy as np
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget
 
 try:
-    from vispy import scene, app as vispy_app
+    from vispy import app as vispy_app
     from vispy.scene import SceneCanvas
     from vispy.scene.visuals import Line
     VISPY_AVAILABLE = True

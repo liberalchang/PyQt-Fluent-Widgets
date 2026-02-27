@@ -2,11 +2,11 @@
 from typing import List, Dict, Optional
 
 from PySide6.QtCore import Qt, QSize, QRectF, QPoint, QTimer, Signal, QEvent
-from PySide6.QtGui import QPainter, QColor, QFont, QMouseEvent, QHoverEvent
+from PySide6.QtGui import QPainter, QColor, QMouseEvent, QHoverEvent
 from PySide6.QtWidgets import QWidget, QButtonGroup, QApplication, QFrame
 
 from ...common.font import setFont
-from ...common.icon import FluentIcon, FluentIconBase, Action
+from ...common.icon import FluentIcon, Action
 from ...common.style_sheet import isDarkTheme, themeColor
 from .menu import RoundMenu, MenuAnimationType, CheckableMenu
 from .button import TransparentToggleToolButton

@@ -6,7 +6,7 @@ from PySide6.QtGui import QPainter, QPainterPath, QColor
 from PySide6.QtWidgets import (QSpinBox, QDoubleSpinBox, QToolButton, QHBoxLayout,
                                QDateEdit, QDateTimeEdit, QTimeEdit, QVBoxLayout, QApplication)
 
-from ...common.style_sheet import FluentStyleSheet, themeColor, isDarkTheme
+from ...common.style_sheet import FluentStyleSheet, isDarkTheme
 from ...common.icon import FluentIconBase, Theme, getIconColor
 from ...common.font import setFont
 from ...common.color import FluentSystemColor, autoFallbackThemeColor

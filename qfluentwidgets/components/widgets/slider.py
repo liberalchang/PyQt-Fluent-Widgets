@@ -1,10 +1,9 @@
 # coding:utf-8
-from PySide6.QtCore import QSize, Qt, Signal, QPoint, QRectF, QPropertyAnimation, Property, QEasingCurve, QTimer
+from PySide6.QtCore import QSize, Qt, Signal, QPoint, QRectF, QPropertyAnimation, Property, QTimer
 from PySide6.QtGui import QColor, QMouseEvent, QPainter, QPainterPath
 from PySide6.QtWidgets import QProxyStyle, QSlider, QStyle, QStyleOptionSlider, QWidget, QToolTip
 
-from ...common.style_sheet import FluentStyleSheet, themeColor, isDarkTheme, ThemeColor
-from ...common.icon import FluentIcon as FIF
+from ...common.style_sheet import FluentStyleSheet, isDarkTheme
 from ...common.color import autoFallbackThemeColor
 from ...common.overload import singledispatchmethod
 
@@ -133,8 +132,8 @@ class Slider(QSlider):
 
     @property
     def grooveLength(self):
-        l = self.width() if self.orientation() == Qt.Orientation.Horizontal else self.height()
-        return l - self.handle.width()
+        length = self.width() if self.orientation() == Qt.Orientation.Horizontal else self.height()
+        return length - self.handle.width()
 
     def _adjustHandlePos(self):
         total = max(self.maximum() - self.minimum(), 1)

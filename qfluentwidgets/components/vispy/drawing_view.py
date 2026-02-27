@@ -1,18 +1,17 @@
 # coding: utf-8
-from typing import Optional, Tuple
+from typing import  Tuple
 from PySide6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QStackedWidget, 
-                               QFrame, QCheckBox, QToolButton)
-from PySide6.QtCore import Qt, Signal, QEvent, QSize
+                               QFrame)
+from PySide6.QtCore import Qt, Signal, QEvent
 from PySide6.QtGui import QColor, QPainter
 
 from ...common.icon import FluentIcon, DrawIcon
-from ...common.config import isDarkTheme, Theme
+
 from ...components.widgets.label import CaptionLabel
 from ...components.widgets.spin_box import DoubleSpinBox
 from ...components.widgets.button import PushButton, ToolButton
 from ...components.widgets.check_box import CheckBox
 from ...components.dialog_box.color_dialog import ColorDialog
-from ...components.widgets.tool_tip import ToolTipFilter
 
 from .drawing import InteractiveDrawingWidget, InteractionMode, StyleData
 from ...components.widgets import VerticalToolPanel

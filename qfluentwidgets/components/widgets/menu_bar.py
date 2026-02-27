@@ -1,8 +1,8 @@
 # coding:utf-8
 from typing import Union, List
 
-from PySide6.QtCore import Qt, Signal, QPoint, QEvent
-from PySide6.QtGui import QIcon, QAction
+from PySide6.QtCore import Qt, Signal, QPoint
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton
 
 from ...common.icon import FluentIconBase, Icon

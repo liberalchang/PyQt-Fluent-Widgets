@@ -1,7 +1,7 @@
 # coding:utf-8
 from typing import Optional
-from PySide6.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, Property, Signal
-from PySide6.QtGui import QPainter, QColor, QPaintEvent, QMouseEvent, QEnterEvent
+from PySide6.QtCore import Qt, QRect, QPropertyAnimation, QEasingCurve, Property
+from PySide6.QtGui import QPainter, QColor, QPaintEvent, QEnterEvent
 from PySide6.QtWidgets import QSplitter, QSplitterHandle, QWidget, QPushButton
 
 from ...common.style_sheet import themeColor, isDarkTheme, FluentStyleSheet

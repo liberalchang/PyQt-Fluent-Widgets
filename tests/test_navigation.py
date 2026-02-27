@@ -17,7 +17,7 @@ from qfluentwidgets import (NavigationItemPosition, FluentWindow,
 
 class Config(QConfig):
     themeMode = OptionsConfigItem("Theme", "ThemeMode", Theme.LIGHT, OptionsValidator(Theme), serializer=lambda x: x.value)
-    windowEffect = OptionsConfigItem("Theme", "WindowEffect", "Mica", OptionsValidator(["Mica", "Acrylic", "None"]), serializer=lambda x: x)
+    windowEffect = OptionsConfigItem("Theme", "WindowEffect", "Acrylic", OptionsValidator(["Mica", "Acrylic", "None"]), serializer=lambda x: x)
 
 cfg = Config()
 
@@ -143,8 +143,9 @@ class Window(FluentWindow):
     def __init__(self):
         super().__init__(showReturnButton=False)
 
-        # 启用云母特效（Windows 11）
-        self.setMicaEffectEnabled(True)
+        # 启用窗口特效（Windows 11）
+        # 注意：亚克力/云母在窗口 show 之前设置，可能不会立刻生效
+        self._applyInitialWindowEffect()
 
         # create sub interfaces
         self.searchInterface = SearchInterface(self)
@@ -160,6 +161,30 @@ class Window(FluentWindow):
         self.resize(900, 700)
         self.setWindowIcon(QIcon(FIF.SEARCH.path(None)))
         self.setWindowTitle('Navigation Test')
+
+    def _applyInitialWindowEffect(self):
+        """根据配置启用初始窗口特效"""
+        effect = cfg.windowEffect.value
+        if effect == "Mica":
+            self.setMicaEffectEnabled(True)
+        elif effect == "Acrylic":
+            self.setAcrylicEffectEnabled(True)
+        else:
+            self.setMicaEffectEnabled(False)
+            self.setAcrylicEffectEnabled(False)
+
+    def _triggerSizeChange(self):
+        """触发微小尺寸变化，促使 DWM 重新刷新窗口合成效果"""
+        current_size = self.size()
+        self.resize(current_size.width() + 1, current_size.height())
+        self.resize(current_size)
+
+    def showEvent(self, e):
+        super().showEvent(e)
+        # 窗口显示后再应用一次特效，避免启动时亚克力不生效
+        from PySide6.QtCore import QTimer
+        QTimer.singleShot(150, self._applyInitialWindowEffect)
+        QTimer.singleShot(250, self._triggerSizeChange)
 
     def initNavigation(self):
         self.addSubInterface(self.searchInterface, FIF.SEARCH, 'Search')

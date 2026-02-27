@@ -1,7 +1,7 @@
 # coding:utf-8
 from PySide6.QtCore import Qt, QSize, QRectF, QModelIndex, QEvent
-from PySide6.QtGui import QPainter, QColor, QPalette, QPainterPath, QPainterPath
-from PySide6.QtWidgets import QTreeWidget, QStyledItemDelegate, QStyle, QTreeView, QApplication, QStyleOptionViewItem, QStyleFactory
+from PySide6.QtGui import QPainter, QColor, QPalette, QPainterPath
+from PySide6.QtWidgets import QTreeWidget, QStyledItemDelegate, QStyle, QTreeView, QStyleOptionViewItem
 
 from ...common.style_sheet import FluentStyleSheet, updateDynamicStyle, isDarkTheme, setCustomStyleSheet
 from ...common.font import getFont
