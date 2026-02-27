@@ -181,7 +181,7 @@ class ExpandBorderWidget(QWidget):
             painter.setPen(QColor(0, 0, 0, 19))
 
         p = self.parent()  # type: ExpandSettingCard
-        r, d = 6, 12
+        r, d = 6, 12  # noqa: F841
         ch, h, w = p.card.height(), self.height(), self.width()
 
         # only draw rounded rect if parent is not expanded
