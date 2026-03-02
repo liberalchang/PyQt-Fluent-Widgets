@@ -27,6 +27,11 @@ else:
             if not msg.hWnd:
                 return super().nativeEvent(eventType, message)
 
+            elif msg.message == win32con.WM_CONTEXTMENU:
+                # 放行右键菜单消息给 Qt，让子控件的 QEvent.ContextMenu 能正常触发
+                # 否则可能会走系统默认处理，表现为无法禁用/错误弹出系统菜单
+                return False, 0
+
             if msg.message == win32con.WM_NCHITTEST and self._isResizeEnabled:
                 if self._isHoverMaxBtn():
                     self.titleBar.maxBtn.setState(TitleBarButtonState.HOVER)

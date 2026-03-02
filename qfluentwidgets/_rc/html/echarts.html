@@ -24,6 +24,12 @@
     <script>
         var chart = echarts.init(document.getElementById('container'));
 
+        // 禁用浏览器默认右键菜单（WebEngine 层面策略失效时的兜底）
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            return false;
+        }, { capture: true });
+
         // Handle window resize
         window.onresize = function () {
             chart.resize();
@@ -42,16 +48,18 @@
             chart.off('click');
             chart.on('click', function (params) {
                 if (window.bridge) {
-                    // Extract relevant data to avoid circular reference in JSON.stringify
-                    var data = {
-                        componentType: params.componentType,
-                        seriesType: params.seriesType,
-                        seriesName: params.seriesName,
-                        name: params.name,
-                        dataIndex: params.dataIndex,
-                        data: params.data,
-                        value: params.value
-                    };
+                    // 安全地提取数据，避免访问未定义的属性
+                    var data = {};
+                    
+                    // 只提取存在的属性
+                    if (params.componentType !== undefined) data.componentType = params.componentType;
+                    if (params.seriesType !== undefined) data.seriesType = params.seriesType;
+                    if (params.seriesName !== undefined) data.seriesName = params.seriesName;
+                    if (params.name !== undefined) data.name = params.name;
+                    if (params.dataIndex !== undefined) data.dataIndex = params.dataIndex;
+                    if (params.data !== undefined) data.data = params.data;
+                    if (params.value !== undefined) data.value = params.value;
+                    
                     window.bridge.onChartClick(JSON.stringify(data));
                 }
             });

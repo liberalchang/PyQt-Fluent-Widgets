@@ -9,11 +9,15 @@ from PySide6.QtQuick import QQuickWindow, QSGRendererInterface
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout
 
 # Add project root to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from qfluentwidgets import FluentWindow, SubtitleLabel
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets.components.charts import EChartsWidget
+
+# import qfluentwidgets.components.charts.echarts_widget as _ew
+# print("[echarts_test] echarts_widget path:", _ew.__file__)
+# print("[echarts_test] QFW_ECHARTS_DEBUG_CTX:", os.getenv("QFW_ECHARTS_DEBUG_CTX"))
 
 class DynamicLineChart(QWidget):
     
@@ -30,6 +34,9 @@ class DynamicLineChart(QWidget):
         self.chart = EChartsWidget(self)
         self.vBoxLayout.addWidget(self.chart, 1)
         
+        # 连接页面重新加载信号
+        self.chart.pageReloaded.connect(self.onPageReloaded)
+        
         # Initialize data
         self.x_data = []
         self.y_data = []
@@ -40,6 +47,14 @@ class DynamicLineChart(QWidget):
         self.timer.start(1000)
         
         # Initialize Chart
+        self.initChart()
+
+    def onPageReloaded(self):
+        """ 页面重新加载后重新初始化图表 """
+        print("[DynamicLineChart] Page reloaded, reinitializing chart")
+        # 清空数据并重新初始化
+        self.x_data.clear()
+        self.y_data.clear()
         self.initChart()
 
     def initChart(self):
@@ -101,8 +116,16 @@ class InteractiveBarChart(QWidget):
         self.chart = EChartsWidget(self)
         self.vBoxLayout.addWidget(self.chart, 1)
         
+        # 连接页面重新加载信号
+        self.chart.pageReloaded.connect(self.onPageReloaded)
+        
         self.chart.chartClicked.connect(self.onChartClicked)
         
+        self.initChart()
+
+    def onPageReloaded(self):
+        """ 页面重新加载后重新初始化图表 """
+        print("[InteractiveBarChart] Page reloaded, reinitializing chart")
         self.initChart()
 
     def initChart(self):
@@ -147,6 +170,8 @@ if __name__ == '__main__':
     
     if sys.platform.startswith("win"):
         os.environ.setdefault("QTWEBENGINE_DISABLE_GPU", "1")
+        os.environ.setdefault("QTWEBENGINE_DISABLE_SANDBOX", "1")
+        os.environ.setdefault("QTWEBENGINE_CHROMIUM_FLAGS", "--disable-gpu --disable-software-rasterizer")
         QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.Software)
 
     app = QApplication(sys.argv)
