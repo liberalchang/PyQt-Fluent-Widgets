@@ -48,14 +48,8 @@ python demo.py
 - QML 启动与快捷窗口：使用 Qt Quick 实现启动窗口与快捷窗口，提供 FluentWindow 的 QML 版本以便快速构建导航窗口
 
 ## 功能测试清单（新增组件）
-- 绘图与可视化：test_vispy_widget.py、test_drawing_view.py、drawing_app.py、draw_icon_example.py
-- 图表：echarts_test.py
-- 表格与数据：table_view.py、test_sortable_table.py
-- 导航与窗口：test_navigation.py、test_navigation_acrylic.py、test_navigation_opengl.py、test_top_navigation.py、test_top_navigation_simple.py、test_top_navigation_window.py、test_navigation_layout_fix.py、test_navigation_titlebar_fix.py、test_maximize_fix.py、test_simple_maximize.py、test_maximize_mica_effect.py、test_detailed_mica.py、test_pywinstyles.py
-- 命令栏与菜单：test_command_bar_orientation.py、test_command_bar_views.py、test_command_bar_advanced.py、test_menu_bar.py
-- 面板与布局：test_splitter.py、test_tool_panel.py、test_tool_panel_views.py、test_tool_panel_with_text.py
-- 输入与交互：label_line_edit_test.py、test_color_pickers.py、test_tooltip_follow.py、test_tooltip_slider.py、test_new_interaction.py、test_auto_resize_demo.py
-- 其他：test_fix_verification.py
+
+- 查看 `test` 下的 `TESTS_SUMMARY.md`
 
 ## 图片预览
 
@@ -68,6 +62,9 @@ python demo.py
 
 ### echarts图表动态更新示例
 ![echarts图表动态更新示例](docs/image/echarts图表动态更新示例.png)
+新增view示例：
+![echarts图表view接口](docs/image/echarts图表view接口.png)
+
 
 ### 排序表格
 ![排序表格](docs/image/排序表格.png)

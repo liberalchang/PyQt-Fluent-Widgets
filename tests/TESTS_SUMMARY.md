@@ -10,6 +10,7 @@
 
 ## 图表
 - echarts_test.py：ECharts 图表动态更新示例
+- chart_presets_test.py 图表view快速接口
 
 ## 表格与数据
 - table_view.py：表格视图与委托样式示例

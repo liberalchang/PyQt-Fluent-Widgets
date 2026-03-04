@@ -49,14 +49,8 @@ This project extends the following capabilities based on the official PySide6 br
 - **QML Startup & Quick Windows**: Uses Qt Quick to implement startup windows and quick windows, providing a QML version of FluentWindow for rapid navigation window construction.
 
 ## Functional Test List (New Components)
-- **Drawing & Visualization**: test_vispy_widget.py, test_drawing_view.py, drawing_app.py, draw_icon_example.py
-- **Charts**: echarts_test.py
-- **Tables & Data**: table_view.py, test_sortable_table.py
-- **Navigation & Windows**: test_navigation.py, test_navigation_acrylic.py, test_navigation_opengl.py, test_top_navigation.py, test_top_navigation_simple.py, test_top_navigation_window.py, test_navigation_layout_fix.py, test_navigation_titlebar_fix.py, test_maximize_fix.py, test_simple_maximize.py, test_maximize_mica_effect.py, test_detailed_mica.py, test_pywinstyles.py
-- **Command Bar & Menus**: test_command_bar_orientation.py, test_command_bar_views.py, test_command_bar_advanced.py, test_menu_bar.py
-- **Panels & Layout**: test_splitter.py, test_tool_panel.py, test_tool_panel_views.py, test_tool_panel_with_text.py
-- **Input & Interaction**: label_line_edit_test.py, test_color_pickers.py, test_tooltip_follow.py, test_tooltip_slider.py, test_new_interaction.py, test_auto_resize_demo.py
-- **Others**: test_fix_verification.py
+
+- Check `test` for `TESTS_SUMMARY.md`
 
 ## Image Preview
 
@@ -69,6 +63,8 @@ This project extends the following capabilities based on the official PySide6 br
 
 ### ECharts Dynamic Update Example
 ![ECharts Dynamic Update Example](docs/image/echarts图表动态更新示例.png)
+New view example:
+![ECharts View Interface](docs/image/echarts图表view接口.png)
 
 ### Sortable Table
 ![Sortable Table](docs/image/排序表格.png)
