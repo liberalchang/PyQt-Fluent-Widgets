@@ -268,3 +268,165 @@ class FluentSplitter(QSplitter):
             if isinstance(handle, FluentSplitterHandle):
                 handle.collapseButton.setOrientation(orientation)
                 handle._updateLayout()
+
+
+class DragOnlySplitterHandle(QSplitterHandle):
+    """只可拖动的分割器手柄
+    
+    特性:
+    - 简洁的拖动样式
+    - 悬停和按压状态变化
+    - 支持水平和垂直方向
+    - 无折叠功能
+    """
+
+    def __init__(self, orientation: Qt.Orientation, parent: QSplitter):
+        super().__init__(orientation, parent)
+        self._handleWidth = 12  # 手柄宽度
+        self._barLength = 24    # 中间横条长度
+        self._barThickness = 3  # 中间横条厚度
+        self._borderRadius = 4  # 圆角半径
+        self._isHovered = False
+        self._isPressed = False
+        
+        # 设置光标样式
+        self._updateCursor()
+
+    def _updateCursor(self):
+        """根据方向更新光标样式"""
+        if self.orientation() == Qt.Horizontal:
+            self.setCursor(Qt.SplitHCursor)
+        else:
+            self.setCursor(Qt.SplitVCursor)
+
+    def _getBackgroundColor(self) -> QColor:
+        """根据状态获取背景颜色"""
+        if self._isPressed:
+            # 按压状态 - 进一步降低深度
+            if isDarkTheme():
+                return QColor(160, 160, 160, 200)  # 深色模式下用浅灰色
+            else:
+                return QColor(150, 150, 150, 200)  # 浅色模式下用中灰色
+        elif self._isHovered:
+            # 悬停状态 - 轻微加深
+            if isDarkTheme():
+                return QColor(120, 120, 120, 200)  # 深色模式下用中浅灰色
+            else:
+                return QColor(180, 180, 180, 200)  # 浅色模式下用较浅灰色
+        else:
+            # 普通状态 - 使用浅色
+            if isDarkTheme():
+                return QColor(100, 100, 100, 200)  # 深色模式下用浅灰色
+            else:
+                return QColor(220, 220, 220, 200)  # 浅色模式下用浅灰色
+
+    def _getBarColor(self) -> QColor:
+        """获取中间横条颜色"""
+        if isDarkTheme():
+            return QColor(200, 200, 200, 255)
+        else:
+            return QColor(100, 100, 100, 255)
+
+    def paintEvent(self, event: QPaintEvent):
+        """绘制手柄"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        
+        # 获取当前区域
+        rect = self.rect()
+        
+        # 绘制背景
+        bg_color = self._getBackgroundColor()
+        painter.setPen(Qt.NoPen)
+        painter.setBrush(bg_color)
+        painter.drawRoundedRect(rect, self._borderRadius, self._borderRadius)
+        
+        # 绘制中间横条
+        bar_color = self._getBarColor()
+        painter.setBrush(bar_color)
+        
+        if self.orientation() == Qt.Horizontal:
+            # 水平分割器：绘制垂直的横条
+            bar_rect = QRect(
+                (rect.width() - self._barThickness) // 2,
+                (rect.height() - self._barLength) // 2,
+                self._barThickness,
+                self._barLength
+            )
+        else:
+            # 垂直分割器：绘制水平的横条
+            bar_rect = QRect(
+                (rect.width() - self._barLength) // 2,
+                (rect.height() - self._barThickness) // 2,
+                self._barLength,
+                self._barThickness
+            )
+        
+        painter.drawRoundedRect(bar_rect, self._barThickness // 2, self._barThickness // 2)
+
+    def enterEvent(self, event: QEnterEvent):
+        """鼠标进入事件"""
+        self._isHovered = True
+        self.update()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        """鼠标离开事件"""
+        self._isHovered = False
+        self._isPressed = False
+        self.update()
+        super().leaveEvent(event)
+
+    def mousePressEvent(self, event):
+        """鼠标按压事件"""
+        if event.button() == Qt.LeftButton:
+            self._isPressed = True
+            self.update()
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """鼠标释放事件"""
+        if event.button() == Qt.LeftButton:
+            self._isPressed = False
+            self.update()
+        super().mouseReleaseEvent(event)
+
+    def sizeHint(self):
+        """返回建议尺寸"""
+        size = super().sizeHint()
+        if self.orientation() == Qt.Horizontal:
+            size.setWidth(self._handleWidth)
+        else:
+            size.setHeight(self._handleWidth)
+        return size
+
+
+class DragOnlySplitter(QSplitter):
+    """只可拖动的分割器
+    
+    提供简洁的拖动分割功能，不支持折叠：
+    - 水平和垂直方向分割
+    - 简洁的手柄样式
+    - 悬停和按压交互效果
+    - 无折叠功能
+    """
+
+    def __init__(self, orientation: Qt.Orientation = Qt.Horizontal, parent: Optional[QWidget] = None):
+        super().__init__(orientation, parent)
+        self.setHandleWidth(12)  # 与DragOnlySplitterHandle._handleWidth一致
+        self.setChildrenCollapsible(False)  # 禁用子组件折叠
+        
+        # 不应用QSS样式，完全使用自定义绘制
+
+    def createHandle(self) -> QSplitterHandle:
+        """创建自定义手柄"""
+        return DragOnlySplitterHandle(self.orientation(), self)
+
+    def setOrientation(self, orientation: Qt.Orientation):
+        """设置分割器方向"""
+        super().setOrientation(orientation)
+        # 更新所有手柄的方向和光标
+        for i in range(1, self.count()):
+            handle = self.handle(i)
+            if isinstance(handle, DragOnlySplitterHandle):
+                handle._updateCursor()

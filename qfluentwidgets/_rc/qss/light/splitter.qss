@@ -24,6 +24,31 @@ FluentSplitter::handle:pressed {
     background: --ThemeColorDark1;
 }
 
+/* Drag Only Splitter */
+DragOnlySplitter {
+    background: transparent;
+}
+
+DragOnlySplitter::handle:horizontal {
+    width: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+DragOnlySplitter::handle:vertical {
+    height: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+DragOnlySplitter::handle:hover {
+    background: rgba(0, 0, 0, 0.12);
+}
+
+DragOnlySplitter::handle:pressed {
+    background: rgba(0, 0, 0, 0.20);
+}
+
 /* Collapse Button */
 CollapseButton {
     background: transparent;

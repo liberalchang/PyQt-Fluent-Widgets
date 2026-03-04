@@ -39,6 +39,7 @@
 
 ## 面板与布局
 - test_splitter.py：分割器组件示例
+- test_drag_only_splitter_complete.py：仅可拖拽分割器完整示例
 - test_tool_panel.py：工具面板基础示例
 - test_tool_panel_views.py：工具面板视图模式示例
 - test_tool_panel_with_text.py：带文本标签的工具面板示例
