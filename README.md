@@ -111,6 +111,14 @@ python demo.py
 > 动态切换主题
 ![FluentWindow 的 qml 实现](docs/image/FluentWindow的qml实现.gif)
 
+## Issue Reporting
+If you encounter any problems while using the library, please first check the official documentation. If the issue is confirmed to be a bug in the library, please send the following information to [shokokawaii@outlook.com](mailto:shokokawaii@outlook.com):
+
+- Operating system information
+- QFluentWidgets Library version
+- Minimal reproducible code
+- Steps to reproduce
+
 
 ## 依赖与安装建议
 - 精简版满足大多数组件使用场景
