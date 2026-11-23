@@ -46,3 +46,6 @@ PySide2_Fluent_Widgets.egg-info/
 app/
 源码/
 # tests/
+# Understand-Anything
+.ua/
+
