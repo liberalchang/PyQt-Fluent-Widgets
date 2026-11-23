@@ -69,6 +69,19 @@ build_docs.bat
 
 更多说明见 [`docs/README.md`](docs/README.md)。上游用法也可参考 [qfluentwidgets.com](https://qfluentwidgets.com/zh/)。
 
+## pip 打包
+
+开发期优先可编辑安装：`pip install -e .`。需要分发 wheel / 源码包时：
+
+```shell
+.venv\Scripts\activate
+pip install -U build wheel twine
+python -m build
+pip install dist\PySide6_Fluent_Widgets-*-py3-none-any.whl
+```
+
+完整步骤（版本号、验证、TestPyPI / PyPI 上传、清理）见 [`docs/build_whl.md`](docs/build_whl.md)。
+
 ## 预览
 
 | 模块 | 预览 |

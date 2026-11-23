@@ -59,6 +59,10 @@ sphinx-build -b html source build
 
 构建完成后，在浏览器中打开 `docs/build/index.html` 即可查看文档。
 
+### 4. pip 打包
+
+分发 wheel / 源码包、本地安装验证与上传 PyPI，见根目录说明中的「pip 打包」以及 [`build_whl.md`](build_whl.md)。
+
 ## 文档内容
 
 ### 项目介绍

@@ -69,6 +69,19 @@ build_docs.bat
 
 More notes: [`docs/README.md`](docs/README.md). Upstream docs: [qfluentwidgets.com](https://qfluentwidgets.com/).
 
+## Packaging with pip
+
+For day-to-day work prefer editable install: `pip install -e .`. To build sdist / wheel:
+
+```shell
+.venv\Scripts\activate
+pip install -U build wheel twine
+python -m build
+pip install dist\PySide6_Fluent_Widgets-*-py3-none-any.whl
+```
+
+Full steps (version bump, verify, TestPyPI / PyPI, cleanup): [`docs/build_whl.md`](docs/build_whl.md).
+
 ## Preview
 
 | Module | Preview |
