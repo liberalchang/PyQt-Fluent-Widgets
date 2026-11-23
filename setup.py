@@ -32,6 +32,6 @@ setuptools.setup(
     project_urls={
         'Documentation': 'https://qfluentwidgets.com/',
         'Source Code': 'https://github.com/liberalchang/PyQt-Fluent-Widgets/tree/PySide6',
-        'Bug Tracker': 'https://github.com/zhiyiYo/PyQt-Fluent-Widgets/issues',
+        'Bug Tracker': 'https://github.com/liberalchang/PyQt-Fluent-Widgets/issues',
     }
 )

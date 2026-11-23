@@ -1,119 +1,107 @@
 # PySide6-Fluent-Widgets
 
-A secondary development version based on the PySide6 branch of PyQt-Fluent-Widgets, adding multiple engineering components and display capabilities for quickly building Fluent Design style desktop applications.
+A secondary development of the **PySide6** branch of [PyQt-Fluent-Widgets](https://github.com/zhiyiYo/PyQt-Fluent-Widgets), for building Fluent Design desktop UIs quickly.
 
-## Features Overview
-- Extended from the official PyQt-Fluent-Widgets PySide6 branch
-- New vispy module for plotting
-- New echarts module for chart display
-- New qml implementation for startup and quick windows (FluentWindow QML implementation)
+> [!IMPORTANT]
+> **This project has moved to GitHub. The Gitee mirror is no longer maintained.**  
+> Active branch: https://github.com/liberalchang/PyQt-Fluent-Widgets/tree/PySide6  
+> Legacy Gitee archive: https://gitee.com/liberalchang/pyside6-fluent-widgets
+
+[简体中文](README.md) | [English](README.en.md)
+
+## Features
+
+- Extended from the official PySide6 branch (`1.11.3-liber.1`)
+- **Vispy**: 2D/3D plotting, camera & coordinates, Mica / maximized window support
+- **ECharts**: dynamic charts, time series, combined charts, and View APIs
+- **QML Hybrid**: splash / quick windows and a QML FluentWindow
+- Extra widgets: sortable table, command bar, tool panel, splitter, color pickers, top navigation, and more
 
 ## Install
-Lite version:
+
+Lite:
+
 ```shell
 pip install PySide6-Fluent-Widgets -i https://pypi.org/simple/
 ```
-Full version (including more optional capabilities):
+
+Full (vispy / numpy / PyOpenGL, etc.):
+
 ```shell
 pip install "PySide6-Fluent-Widgets[full]" -i https://pypi.org/simple/
 ```
 
-> [!Warning]
-> Do not install PyQt-Fluent-Widgets, PyQt6-Fluent-Widgets, PySide2-Fluent-Widgets, and PySide6-Fluent-Widgets at the same time because they share the same package name `qfluentwidgets`.
+> [!WARNING]
+> Do not install PyQt-Fluent-Widgets, PyQt6-Fluent-Widgets, PySide2-Fluent-Widgets, and PySide6-Fluent-Widgets together — they share the package name `qfluentwidgets`.
 
-## Documentation
-Building documentation requires `sphinx` and `sphinx-rtd-theme` packages:
+## Local development
+
+Use a project-root `.venv` (conda is not used):
+
 ```shell
-pip install sphinx sphinx-rtd-theme
-```
-Build documentation:
-```python
-python build_docs.py
+python -m venv .venv
+.venv\Scripts\activate
+pip install -U pip
+pip install -r requirements.txt
+pip install -e .
 ```
 
-## Run Official Example
+## Examples
+
+Official gallery:
+
 ```shell
+.venv\Scripts\activate
 cd examples/gallery
 python demo.py
 ```
 
-## Notes
-This project extends the following capabilities based on the official PySide6 branch:
-- vispy drawing module
-- echarts chart module
-- qml startup window and quick window (FluentWindow QML implementation)
+Secondary-development demos live under `tests/`. See [`tests/TESTS_SUMMARY.md`](tests/TESTS_SUMMARY.md).
 
-## New Components Details
-- **Vispy Drawing**: Supports 2D/3D scene rendering, camera control, coordinate transformation, compatible with Mica effects and maximized windows. Example: `tests/test_vispy_widget.py`
-- **ECharts Charts**: Supports dynamic charts, real-time time-series data updates, and combined charts. Example: `tests/echarts_test.py`
-- **QML Startup & Quick Windows**: Uses Qt Quick to implement startup windows and quick windows, providing a QML version of FluentWindow for rapid navigation window construction.
+## Documentation
 
-## Functional Test List (New Components)
+```shell
+.venv\Scripts\activate
+pip install sphinx sphinx-rtd-theme sphinx-markdown-tables recommonmark
+build_docs.bat
+# or: python build_docs.py
+```
 
-- Check `test` for `TESTS_SUMMARY.md`
+More notes: [`docs/README.md`](docs/README.md). Upstream docs: [qfluentwidgets.com](https://qfluentwidgets.com/).
 
-## Image Preview
+## Preview
 
-### Vispy Drawing Scene
-![Vispy Drawing Scene](docs/image/2D绘图场景.png)
-![Vispy 3D Scene](docs/image/3D绘图场景.png)
+| Module | Preview |
+| --- | --- |
+| Vispy 2D / 3D | ![2D](docs/image/2D绘图场景.png) ![3D](docs/image/3D绘图场景.png) |
+| Vispy interactive | ![interactive](docs/image/vispy鼠标交互绘图场景.png) |
+| ECharts | ![dynamic](docs/image/echarts图表动态更新示例.png) ![view](docs/image/echarts图表view接口.png) |
+| Sortable table | ![table](docs/image/排序表格.png) |
+| Acrylic / top nav | ![acrylic](docs/image/亚克力导航窗口示例.png) ![top nav](docs/image/完整顶部导航窗口示例.png) |
+| Command bar | ![bar](docs/image/水平垂直命令栏.png) ![dock](docs/image/拖拽停靠命令栏.png) |
+| Menu / splitter / tool panel | ![menu](docs/image/菜单栏.png) ![splitter](docs/image/分割器.png) ![panel](docs/image/工具面板.png) |
+| Inputs & color | ![label](docs/image/带标签输入框.png) ![slider](docs/image/带提示滑动条.png) ![color](docs/image/颜色选择器.png) |
+| QML splash / FluentWindow | ![splash](docs/image/动态效果的qml启动窗口.gif) ![window](docs/image/FluentWindow的qml实现.gif) |
 
-### Vispy Interactive Drawing Scene
-![Vispy Interactive Drawing Scene](docs/image/vispy鼠标交互绘图场景.png)
+## Issue reporting
 
-### ECharts Dynamic Update Example
-![ECharts Dynamic Update Example](docs/image/echarts图表动态更新示例.png)
-New view example:
-![ECharts View Interface](docs/image/echarts图表view接口.png)
+For bugs in this fork, email [changxianglong@outlook.com](mailto:changxianglong@outlook.com) with:
 
-### Sortable Table
-![Sortable Table](docs/image/排序表格.png)
+- OS information
+- Library version (e.g. `1.11.3-liber.1`)
+- Minimal reproducible code
+- Steps to reproduce
 
-### Acrylic Navigation Window Example
-![Acrylic Navigation Window Example](docs/image/亚克力导航窗口示例.png)
+Or open a GitHub issue: https://github.com/liberalchang/PyQt-Fluent-Widgets/issues
 
-### Full Top Navigation Window Example
-![Full Top Navigation Window Example](docs/image/完整顶部导航窗口示例.png)
+## Repositories
 
-### Command Bar
-![Horizontal & Vertical Command Bar](docs/image/水平垂直命令栏.png)
-![Draggable Dock Command Bar](docs/image/拖拽停靠命令栏.png)
+| Role | URL |
+| --- | --- |
+| This project (maintained) | https://github.com/liberalchang/PyQt-Fluent-Widgets/tree/PySide6 |
+| Upstream | https://github.com/zhiyiYo/PyQt-Fluent-Widgets/tree/PySide6 |
+| Gitee archive (read-only) | https://gitee.com/liberalchang/pyside6-fluent-widgets |
 
-### Menu Bar
-![Menu Bar](docs/image/菜单栏.png)
+## License
 
-### Splitter
-![Splitter](docs/image/分割器.png)
-
-### Tool Panel
-![Tool Panel](docs/image/工具面板.png)
-
-### Label Line Edit
-![Label Line Edit](docs/image/带标签输入框.png)
-
-### Tooltip Slider
-![Tooltip Slider](docs/image/带提示滑动条.png)
-
-### Color Picker
-> Supports color picking, theme color palette, custom color list
-![Color Picker](docs/image/颜色选择器.png)
-
-### QML Startup Window & Quick Window
-![QML Startup Window & Quick Window](docs/image/动态效果的qml启动窗口.gif)
-
-### QML Implementation of FluentWindow
-> Dynamic theme switching
-![QML Implementation of FluentWindow](docs/image/FluentWindow的qml实现.gif)
-
-
-## Dependencies & Installation Suggestions
-- The Lite version satisfies most component usage scenarios.
-- The Full version additionally includes dependencies like vispy, numpy, PyOpenGL, etc., suitable for advanced drawing and charting scenarios.
-
-## Examples & Test Entry Points
-- Run gallery example: `examples/gallery/demo.py`
-- Component-level examples are located in the `tests/` directory; run the referenced files above as needed.
-- For test file descriptions, see `tests/TESTS_SUMMARY.md`.
-
-## Reference
-- Official module address and notes: https://github.com/zhiyiYo/PyQt-Fluent-Widgets/tree/PyQt6
+Non-commercial use under [GPLv3](LICENSE). For commercial licensing, see upstream [QFluentWidgets](https://qfluentwidgets.com/price). Upstream copyright belongs to zhiyiYo; secondary development in this repo is maintained by liber.
