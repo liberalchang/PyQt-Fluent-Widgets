@@ -2,6 +2,11 @@
 
 基于 PyQt-Fluent-Widgets 的 PySide6 分支二次开发版本，新增多个工程化组件与展示能力，面向桌面应用快速构建 Fluent Design 风格界面。
 
+> [!IMPORTANT]
+> **仓库已迁移至 GitHub，Gitee 不再维护。**  
+> 请使用：https://github.com/liberalchang/PyQt-Fluent-Widgets/tree/PySide6  
+> 原 Gitee 仓库（https://gitee.com/liberalchang/pyside6-fluent-widgets）仅作历史存档，不再接收更新。
+
 ## 特性概览
 - 基于官方 PyQt-Fluent-Widgets 的 PySide6 分支扩展
 - 新增 vispy 模块实现绘图
@@ -116,5 +121,10 @@ python demo.py
 - 组件级示例位于 `tests/` 目录，按需运行上述参考文件
 - 测试文件说明见 `tests/TESTS_SUMMARY.md`
 
+## 仓库地址
+- 本项目（GitHub / PySide6 分支，当前维护）：https://github.com/liberalchang/PyQt-Fluent-Widgets/tree/PySide6
+- 官方上游：https://github.com/zhiyiYo/PyQt-Fluent-Widgets/tree/PySide6
+- Gitee 旧地址（已停维，仅存档）：https://gitee.com/liberalchang/pyside6-fluent-widgets
+
 ## 参考来源
-- 官方模块地址与说明：https://github.com/zhiyiYo/PyQt-Fluent-Widgets/tree/PyQt6
+- 官方模块地址与说明：https://github.com/zhiyiYo/PyQt-Fluent-Widgets/tree/PySide6
