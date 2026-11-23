@@ -9,6 +9,13 @@
 # 忽略 .idea
 .idea/
 
+# Gitee 模板不再维护，勿提交
+.gitee/
+
+# 本地虚拟环境（统一使用 .venv，不用 conda）
+.venv/
+venv/
+
 # 忽略python缓存文件
 */__pycache__
 *.py[cod]
@@ -36,7 +43,6 @@ PySide2_Fluent_Widgets.egg-info/
 
 .trae/
 .codebuddy/
-examples/
 app/
 源码/
 # tests/

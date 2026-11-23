@@ -23,10 +23,11 @@ docs/
 ### 1. 安装依赖
 
 ```bash
-# 激活 conda 环境
-conda activate pyside6dev
-
-# 安装 Sphinx 和相关扩展
+# 在项目根目录创建并使用 .venv（统一环境，不再使用 conda）
+python -m venv .venv
+.venv\Scripts\activate
+pip install -U pip
+pip install -r requirements.txt
 pip install sphinx sphinx-rtd-theme sphinx-markdown-tables recommonmark
 ```
 
@@ -35,10 +36,11 @@ pip install sphinx sphinx-rtd-theme sphinx-markdown-tables recommonmark
 #### 方法一：使用构建脚本（推荐）
 
 ```bash
-# Windows
+# Windows（脚本会自动激活根目录 .venv）
 build_docs.bat
 
-# 或者直接运行 Python 脚本
+# 或先激活 .venv 再运行
+.venv\Scripts\activate
 python build_docs.py
 ```
 

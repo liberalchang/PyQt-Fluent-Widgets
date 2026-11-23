@@ -26,17 +26,31 @@ pip install "PySide6-Fluent-Widgets[full]" -i https://pypi.org/simple/
 > [!Warning]
 > 不要同时安装 PyQt-Fluent-Widgets、PyQt6-Fluent-Widgets、PySide2-Fluent-Widgets 和 PySide6-Fluent-Widgets，因为它们的包名均为 `qfluentwidgets`。
 
+## 本地开发环境
+统一使用项目根目录 `.venv`（不再使用 conda）：
+```shell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -U pip
+pip install -r requirements.txt
+pip install -e .
+```
+
 ## 文档
 构建文档需要安装 `sphinx` 与 `sphinx-rtd-theme` 包：
 ```shell
+.venv\Scripts\activate
 pip install sphinx sphinx-rtd-theme
 ```
 构建文档：
-```python
+```shell
+build_docs.bat
+# 或
 python build_docs.py
 ```
 ## 运行官方示例
 ```shell
+.venv\Scripts\activate
 cd examples/gallery
 python demo.py
 ```
